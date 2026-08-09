@@ -40,6 +40,39 @@ export function toDroidAutoArgs(sandbox: SandboxMode): string[] {
   }
 }
 
+/**
+ * Args for the empty-allowlist tool policy.
+ *
+ * Verified against `droid exec` (Factory):
+ * - `--enabled-tools ''` is parsed as "no restriction" (full toolset).
+ * - `--disabled-tools '*'` exits 1 with "Unknown tool identifier(s)" — the
+ *   wildcard is NOT accepted.
+ * - `--disabled-tools` with the full tool-id list is accepted, and a live
+ *   probe (model asked to call Read on a file) issued zero tool_call events
+ *   and completed without tool access.
+ *
+ * The list below is the complete tool inventory from `droid exec
+ * --list-tools`. `--disabled-tools` rejects unknown ids, so a newer droid
+ * that adds tools will fail loudly ("Unknown tool identifier(s)") rather
+ * than silently re-enable everything — update this list from --list-tools
+ * when that happens. The SANDBOX_NOTICE system prompt remains the second
+ * belt.
+ */
+export const DROID_ALL_TOOL_IDS = [
+  'Read', 'LS', 'Execute', 'Edit', 'ApplyPatch', 'Grep', 'Glob', 'Create',
+  'ExitSpecMode', 'AskUser', 'WebSearch', 'TodoWrite', 'FetchUrl',
+  'GenerateDroid', 'UpgradeSessionModel', 'ToolSearch', 'Skill',
+  'ProposeMission', 'StartMissionRun', 'EndFeatureRun', 'DismissHandoffItems',
+  'Task', 'TaskOutput', 'TaskStop',
+  'CronCreate', 'CronList', 'CronDelete',
+  'CreateAutomation', 'ListAutomations', 'ReadAutomation', 'EditAutomation',
+  'DeleteAutomation',
+] as const;
+
+export function toDroidNoToolsArgs(): string[] {
+  return ['--disabled-tools', DROID_ALL_TOOL_IDS.join(',')];
+}
+
 export class DroidBackend implements Backend {
   readonly name = 'droid';
   readonly command = 'droid';
@@ -64,12 +97,10 @@ export class DroidBackend implements Backend {
 
     args.push(...toDroidAutoArgs(config.sandbox ?? 'read-only'));
 
-    // Droid CLI doesn't support zero tools (--enabled-tools '' is treated as
-    // "no restriction"). The closest we can get is restricting to Read only —
-    // a harmless read-only tool. The SANDBOX_NOTICE in the system prompt tells
-    // the model not to call any tools at all.
+    // See toDroidNoToolsArgs — explicit full-id --disabled-tools list plus
+    // the SANDBOX_NOTICE system prompt.
     if (config.tools !== undefined && config.tools.length === 0) {
-      args.push('--enabled-tools', 'Read');
+      args.push(...toDroidNoToolsArgs());
     }
 
     if (config.systemPrompt) {
@@ -111,12 +142,10 @@ export class DroidBackend implements Backend {
 
     args.push(...toDroidAutoArgs(config.sandbox ?? 'read-only'));
 
-    // Droid CLI doesn't support zero tools (--enabled-tools '' is treated as
-    // "no restriction"). The closest we can get is restricting to Read only —
-    // a harmless read-only tool. The SANDBOX_NOTICE in the system prompt tells
-    // the model not to call any tools at all.
+    // See toDroidNoToolsArgs — explicit full-id --disabled-tools list plus
+    // the SANDBOX_NOTICE system prompt.
     if (config.tools !== undefined && config.tools.length === 0) {
-      args.push('--enabled-tools', 'Read');
+      args.push(...toDroidNoToolsArgs());
     }
 
     if (config.systemPrompt) {

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { DroidBackend, createDroidBackend, toDroidReasoning, toDroidAutoArgs } from '../../src/backend/droid';
+import { DroidBackend, createDroidBackend, toDroidReasoning, toDroidAutoArgs, toDroidNoToolsArgs, DROID_ALL_TOOL_IDS } from '../../src/backend/droid';
 
 describe('toDroidReasoning', () => {
   test('maps minimal to off', () => {
@@ -34,6 +34,29 @@ describe('toDroidAutoArgs', () => {
 
   test('full produces --auto high', () => {
     expect(toDroidAutoArgs('full')).toEqual(['--auto', 'high']);
+  });
+});
+
+describe('toDroidNoToolsArgs', () => {
+  test('disables every known tool id via --disabled-tools', () => {
+    const args = toDroidNoToolsArgs();
+    expect(args[0]).toBe('--disabled-tools');
+    expect(args[1].split(',').length).toBe(DROID_ALL_TOOL_IDS.length);
+    // The full list is required because droid rejects the '*' wildcard
+    // ("Unknown tool identifier(s)", exit 1) and treats --enabled-tools ''
+    // as "no restriction" — both verified against droid exec.
+    expect(args[1]).not.toContain('*');
+    expect(args[1]).toContain('Read');
+    expect(args[1]).toContain('Execute');
+    expect(args[1]).toContain('Create');
+  });
+
+  test('the id list stays complete (fails loudly when droid adds tools)', () => {
+    // DROID_ALL_TOOL_IDS mirrors `droid exec --list-tools`. A newer droid
+    // that ships new tools will make `droid exec` reject this list (unknown
+    // ids error) — the intentional fail-loud design. Update both together.
+    expect(DROID_ALL_TOOL_IDS.length).toBeGreaterThanOrEqual(28);
+    expect(new Set(DROID_ALL_TOOL_IDS).size).toBe(DROID_ALL_TOOL_IDS.length);
   });
 });
 
