@@ -7,6 +7,7 @@ export const BACKEND_DEFAULT_MODELS: Record<string, string> = {
   'codex': 'gpt-5.2',
   'droid': 'custom:Makora-GLM-5.2-NVFP4-9',
   'pi': 'pi/makora/zai-org/GLM-5.2-NVFP4',
+  'agy': 'gemini-3.1-pro-high',
 };
 
 /**
@@ -29,6 +30,7 @@ export const BACKEND_DEFAULT_REASONING: Record<string, ReasoningLevel> = {
   'codex': 'medium',
   'droid': 'medium',
   'pi': 'medium',
+  'agy': 'medium',
 };
 
 export function getBackendDefaultModel(backendId: string): string | undefined {
