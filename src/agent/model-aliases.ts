@@ -22,8 +22,6 @@ export const MODEL_ALIASES: Record<string, ModelAliasTarget> = {
   // Antigravity models (via agy CLI). Bare native slugs; backend is explicit.
   'gemini-pro': { backend: 'agy', model: 'gemini-3.1-pro-high' },
   'gemini-flash': { backend: 'agy', model: 'gemini-3.6-flash-high' },
-  // Note: no -lite tier exists in the agy catalog; lightest flash is -low.
-  'gemini-lite': { backend: 'agy', model: 'gemini-3.5-flash-low' },
 };
 
 export interface UserAliases {
@@ -39,6 +37,8 @@ export interface UserAliases {
  * matching how veda already infers a backend for an unprefixed `-m` value.
  * Invalid entries are skipped.
  */
+const REASONING_LEVELS = new Set(['minimal', 'low', 'medium', 'high', 'xhigh', 'max']);
+
 export function parseModelAliases(value: string): UserAliases {
   const out: UserAliases = {};
   for (const raw of value.split(',')) {
@@ -50,10 +50,19 @@ export function parseModelAliases(value: string): UserAliases {
     const target = entry.slice(eq + 1).trim();
     if (!name || !target) continue;
 
-    const reasoning = target.lastIndexOf(':') !== -1
-      ? target.slice(target.lastIndexOf(':') + 1)
-      : undefined;
-    const model = reasoning !== undefined ? target.slice(0, target.lastIndexOf(':')) : target;
+    // The optional :reasoning suffix only counts when the trailing segment is a
+    // valid reasoning level. This keeps colons inside the model id (e.g. pi's
+    // hf:moonshotai/Kimi-K3) from being misread as a reasoning separator.
+    let model = target;
+    let reasoning: string | undefined;
+    const lastColon = target.lastIndexOf(':');
+    if (lastColon !== -1) {
+      const tail = target.slice(lastColon + 1).toLowerCase();
+      if (REASONING_LEVELS.has(tail)) {
+        reasoning = tail;
+        model = target.slice(0, lastColon);
+      }
+    }
     const backend = inferAliasBackend(model);
     if (!model || !backend) continue;
 

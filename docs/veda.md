@@ -110,9 +110,9 @@ revise `design.json` yourself, then re-delegate to the worker.
 
 - Aliases: `-m sol` (gpt-5.6-sol, codex, high), `-m terra` (gpt-5.6-terra, codex, high),
   `-m luna` (gpt-5.6-luna, codex, high), `-m fable` (claude-fable-5, droid),
-  `-m gemini-pro` (gemini-3.1-pro-high, agy), `-m gemini-flash` (gemini-3.6-flash-high, agy),
-  `-m gemini-lite` (gemini-3.5-flash-low, agy). pi has no built-in aliases; set your own
-  via `MODEL_ALIASES` (e.g. `k3=pi/neuralwatt/kimi-k3:max`, `glm=pi/makora/zai-org/GLM-5.2-NVFP4:xhigh`),
+  `-m gemini-pro` (gemini-3.1-pro-high, agy), `-m gemini-flash` (gemini-3.6-flash-high, agy).
+  pi has no built-in aliases; set your own via `MODEL_ALIASES` (e.g. `k3=pi/hyper/kimi-k3`,
+  `glm=pi/neuralwatt/glm-5.2-short`),
   plus `-m flash` (pi/neuralwatt/deepseek-v4-flash — cheap, good for worker runs).
 - `pi/...` model strings auto-infer the pi backend; `agy/...` auto-infers agy;
   `gpt-...` → codex;

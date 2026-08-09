@@ -147,7 +147,6 @@ veda -m pi/neuralwatt/moonshotai/Kimi-K2.6 "..."      # neuralwatt provider
 # Antigravity models (→ agy backend)
 veda -m gemini-pro "..."          # Uses agy with gemini-3.1-pro-high
 veda -m gemini-flash "..."        # Uses agy with gemini-3.6-flash-high
-veda -m gemini-lite "..."         # Uses agy with gemini-3.5-flash-low
 veda -m agy/gemini-3.6-flash-low "..."  # agy/ prefix auto-infers the agy backend
 veda -b agy -m claude-sonnet-4-6 "..."  # agy-hosted Claude (needs explicit -b; bare claude-* goes to claude-code)
 ```

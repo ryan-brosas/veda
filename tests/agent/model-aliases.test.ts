@@ -33,7 +33,7 @@ describe('MODEL_ALIASES', () => {
   test('contains agy models', () => {
     expect(MODEL_ALIASES['gemini-pro']).toEqual({ backend: 'agy', model: 'gemini-3.1-pro-high' });
     expect(MODEL_ALIASES['gemini-flash']).toEqual({ backend: 'agy', model: 'gemini-3.6-flash-high' });
-    expect(MODEL_ALIASES['gemini-lite']).toEqual({ backend: 'agy', model: 'gemini-3.5-flash-low' });
+    expect(MODEL_ALIASES['gemini-lite']).toBeUndefined();
   });
 });
 
@@ -74,7 +74,7 @@ describe('resolveModelAlias', () => {
   test('resolves agy aliases', () => {
     expect(resolveModelAlias('gemini-pro')).toEqual({ backend: 'agy', model: 'gemini-3.1-pro-high' });
     expect(resolveModelAlias('gemini-flash')).toEqual({ backend: 'agy', model: 'gemini-3.6-flash-high' });
-    expect(resolveModelAlias('gemini-lite')).toEqual({ backend: 'agy', model: 'gemini-3.5-flash-low' });
+    expect(resolveModelAlias('gemini-lite')).toBeUndefined();
   });
 
   test('handles case-insensitive lookup', () => {
@@ -131,17 +131,18 @@ describe('listModelAliases', () => {
     expect(aliases).toContain('luna');
     expect(aliases).toContain('gemini-pro');
     expect(aliases).toContain('gemini-flash');
-    expect(aliases).toContain('gemini-lite');
     // Removed / user-set names are absent.
     expect(aliases).not.toContain('gpt');
     expect(aliases).not.toContain('glm');
     expect(aliases).not.toContain('k3');
     expect(aliases).not.toContain('gemini');
     expect(aliases).not.toContain('agy-flash');
+    expect(aliases).not.toContain('gemini-lite');
   });
 
   test('returns expected count', () => {
-    expect(listModelAliases().length).toBe(10);
+    // opus sonnet haiku sol terra luna fable gemini-pro gemini-flash = 9
+    expect(listModelAliases().length).toBe(9);
   });
 });
 
@@ -149,6 +150,17 @@ describe('parseModelAliases and user alias overrides', () => {
   test('parses name=model and infers pi backend from prefix', () => {
     expect(parseModelAliases('flash=pi/neuralwatt/deepseek-v4-flash')).toEqual({
       flash: { backend: 'pi', model: 'pi/neuralwatt/deepseek-v4-flash' },
+    });
+  });
+
+  test('preserves colons inside the model id (hf: prefix), only reads valid reasoning', () => {
+    // Regression: hf:moonshotai/Kimi-K3 must not be split on its inner colon.
+    expect(parseModelAliases('k3-syn=pi/synthetic/hf:moonshotai/Kimi-K3')).toEqual({
+      'k3-syn': { backend: 'pi', model: 'pi/synthetic/hf:moonshotai/Kimi-K3' },
+    });
+    // A valid trailing reasoning level still parses off the model.
+    expect(parseModelAliases('k3-syn=pi/synthetic/hf:moonshotai/Kimi-K3:max')).toEqual({
+      'k3-syn': { backend: 'pi', model: 'pi/synthetic/hf:moonshotai/Kimi-K3', reasoning: 'max' },
     });
   });
 
