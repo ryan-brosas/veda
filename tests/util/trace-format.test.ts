@@ -270,6 +270,13 @@ describe('trace-format', () => {
       expect(stripped).not.toContain('pi/pi/');
     });
 
+    it('strips redundant backend prefix in persona mode too (no pi/pi/)', () => {
+      const result = formatChatHeader('navigator-chat', 'pi', 'pi/neuralwatt/deepseek-v4-flash');
+      const stripped = result.replace(/\x1b\[[0-9;]*m/g, '');
+      expect(stripped).toContain('▸ navigator-chat (pi/neuralwatt/deepseek-v4-flash)');
+      expect(stripped).not.toContain('pi/pi/');
+    });
+
     it('respects line width', () => {
       const result = formatChatHeader('test', 'backend', 'model', 80);
       const stripped = result.replace(/\x1b\[[0-9;]*m/g, '');

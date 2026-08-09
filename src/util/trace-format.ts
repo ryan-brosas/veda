@@ -334,14 +334,15 @@ export function formatChatHeader(
   const { symbols } = FORMAT_CONFIG;
   
   // Build the identifier: "persona (backend/model)" or "backend/model" or just "backend"
+  // Strip a redundant backend prefix from the model so pi's canonical
+  // "pi/provider/model" doesn't render as "pi/pi/provider/model".
+  const displayModel = model && model.startsWith(`${backend}/`) ? model.slice(backend.length + 1) : model;
   let identifier: string;
-  if (persona && model) {
-    identifier = `${persona} (${backend}/${model})`;
+  if (persona && displayModel) {
+    identifier = `${persona} (${backend}/${displayModel})`;
   } else if (persona) {
     identifier = `${persona} (${backend})`;
-  } else if (model) {
-    // Strip redundant backend prefix from model display (e.g. pi/wafer/glm-5.1 → wafer/glm-5.1)
-    const displayModel = model.startsWith(`${backend}/`) ? model.slice(backend.length + 1) : model;
+  } else if (displayModel) {
     identifier = `${backend}/${displayModel}`;
   } else {
     identifier = backend;
