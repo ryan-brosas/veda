@@ -10,6 +10,7 @@
  *   2. codex       → gpt-5.6-sol      (Sol)
  *   3. droid       → claude-fable-5   (Fable via droid)
  *   4. pi          → pi/neuralwatt/kimi-k3  (K3, pi's frontier option)
+ *   5. agy         → gemini-3.1-pro-high    (Antigravity CLI)
  */
 import { existsSync } from 'fs';
 import { readFileSync } from 'fs';
@@ -35,6 +36,7 @@ const BACKEND_BINARIES: Record<string, string> = {
   'codex': 'codex',
   'droid': 'droid',
   'pi': 'pi',
+  'agy': 'agy',
 };
 
 /** Default model for each backend (full model name, not an alias). */
@@ -46,10 +48,11 @@ const BACKEND_DEFAULT_MODEL: Record<string, DefaultModel> = {
   // pi/neuralwatt/kimi-k3 — parsePiModel splits on the first slash
   // after pi/ to get provider + model.
   'pi':          { model: 'pi/neuralwatt/kimi-k3', backend: 'pi' },
+  'agy':         { model: 'gemini-3.1-pro-high', backend: 'agy' },
 };
 
-/** Detection priority: codex → claude → pi → droid. */
-const DETECTION_ORDER = ['codex', 'claude-code', 'pi', 'droid'];
+/** Detection priority: codex → claude → pi → droid → agy. */
+const DETECTION_ORDER = ['codex', 'claude-code', 'pi', 'droid', 'agy'];
 
 /**
  * Check whether a binary is on PATH. Uses a shell `command -v` so it

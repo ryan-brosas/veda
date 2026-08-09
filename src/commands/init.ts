@@ -24,7 +24,7 @@ const DEFAULT_CONFIG = `# veda configuration
 # Default sandbox (read-only, workspace-write, full)
 # DEFAULT_SANDBOX="read-only"
 
-# Default backend (codex, claude-code, droid, pi)
+# Default backend (codex, claude-code, droid, pi, agy)
 # BACKEND="codex"
 
 # Notifications
@@ -55,7 +55,7 @@ export async function handleInit(_options: CliOptions): Promise<void> {
       console.log(`\nDefault model: ${defaultModel.model} (via ${defaultModel.backend})`);
     }
   } else {
-    console.log('No harness CLIs found on PATH. Install one of: codex, claude, droid, pi');
+    console.log('No harness CLIs found on PATH. Install one of: codex, claude, droid, pi, agy');
   }
   
   // Create config if it doesn't exist
