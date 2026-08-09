@@ -42,7 +42,7 @@ veda -S impl-auth-feature -p navigator-plan 'The function uses \`console.log\` t
 
 ### Tools
 
-Tools are **off by default** for the advisory personas — they reason from the supplied context only. Opt in explicitly with \`--tools\` for a single run. The **worker** is the exception: it runs with tools on and a \`workspace-write\` sandbox, because implementation is its job.
+Tools are **off by default** for the advisory personas (navigator-plan, navigator-chat, reviewer) — they reason from the supplied context only. Opt in explicitly with \`--tools\` for a single run (e.g., \`--tools read,bash,grep,glob\` when the reviewer should verify against the live surface). The **worker** is the exception: it runs with tools on and a \`workspace-write\` sandbox, because implementation is its job.
 
 \`\`\`bash
 # Default: no tools, context-only reasoning
@@ -68,7 +68,7 @@ design to one worker run, verify the result), the *worker* drives
 |---------|-------------------|------|
 | \`navigator-plan\` | high | none (default) |
 | \`navigator-chat\` | medium | none (default) |
-| \`reviewer\` | medium | read,bash,grep,glob (default) |
+| \`reviewer\` | medium | none (default; opt in with --tools read,bash,grep,glob) |
 | \`worker\` | high | all (workspace-write sandbox) |
 
 ---
@@ -230,7 +230,7 @@ Key commands:
 - \`veda -S impl-TASKNAME -p navigator-plan\` for initial planning (high reasoning)
 - \`veda -S impl-TASKNAME -p navigator-chat\` for follow-up discussion (medium reasoning)
 - \`veda -S impl-TASKNAME -p worker\` to delegate a bounded implementation task (writes report.yaml)
-- \`veda -S review-TASKNAME -p reviewer\` for the final review + live verification (P0/P1/P2 findings; runs build/tests/cdp/xtui/curl)
+- \`veda -S review-TASKNAME -p reviewer\` for the final review (P0/P1/P2 findings); add \`--tools read,bash,grep,glob\` for live verification (build/tests/cdp/xtui/curl)
 - \`veda -S impl-TASKNAME --no-tools\` to disable all tools (context-only response)
 - \`veda -S impl-TASKNAME --tools read,grep,glob\` to opt back in for a single run
 - \`veda -S impl-TASKNAME resume\` to continue a conversation (session-scoped)

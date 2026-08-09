@@ -35,7 +35,7 @@ describe('persona', () => {
     await mkdir(join(TEST_PERSONAS_DIR, 'reviewer'));
     await writeFile(
       join(TEST_PERSONAS_DIR, 'reviewer', 'AGENTS.md'),
-      '---\nreasoning: medium\ntools: read,bash,grep,glob\n---\n# Reviewer\n\nYou are a code reviewer.'
+      '---\nreasoning: medium\ntools: none\n---\n# Reviewer\n\nYou are a code reviewer.'
     );
 
     await mkdir(join(TEST_PERSONAS_DIR, 'worker'));
@@ -80,7 +80,7 @@ describe('persona', () => {
       expect(reviewer.defaultReasoning).toBe('medium');
       expect(plan.tools).toEqual(['read', 'grep', 'glob']);
       expect(chat.tools).toBeUndefined();
-      expect(reviewer.tools).toEqual(['read', 'bash', 'grep', 'glob']);
+      expect(reviewer.tools).toEqual([]);
     });
   });
 
@@ -187,7 +187,7 @@ describe('persona', () => {
       );
 
       expect(plan.tools).toEqual(['read', 'grep', 'glob']);
-      expect(reviewer.tools).toEqual(['read', 'bash', 'grep', 'glob']);
+      expect(reviewer.tools).toEqual([]);
     });
 
     test('defaults to no tools when neither persona nor CLI grants them', async () => {
@@ -625,19 +625,28 @@ describe('worker persona — write-capable defaults', () => {
   });
 });
 
-describe('reviewer persona — code review + live verification, tools on by default', () => {
-  test('embedded reviewer loads with reasoning medium + read,bash,grep,glob tools', async () => {
+describe('reviewer persona — code review, tools off by default', () => {
+  test('embedded reviewer loads with reasoning medium + no tools', async () => {
     const persona = await loadPersona('reviewer', '/nonexistent/path');
     expect(persona.defaultReasoning).toBe('medium');
-    expect(persona.tools).toEqual(['read','bash','grep','glob']);
+    expect(persona.tools).toEqual([]);
   });
 
-  test('resolveAgentConfig(reviewer) resolves tools to read,bash,grep,glob (not the no-tools default)', async () => {
+  test('resolveAgentConfig(reviewer) resolves to the no-tools default', async () => {
     const config = await resolveAgentConfig(
       { persona: 'reviewer', backend: 'pi', baseDir: TEST_BASE },
       { persona: 'navigator-chat' }
     );
-    expect(config.tools).toEqual(['read','bash','grep','glob']);
+    expect(config.tools).toEqual([]);
+    expect(config.systemPrompt).toContain('no access to tools');
+  });
+
+  test('--tools opts the reviewer back into live verification', async () => {
+    const config = await resolveAgentConfig(
+      { persona: 'reviewer', tools: ['read', 'bash', 'grep', 'glob'], backend: 'pi', baseDir: TEST_BASE },
+      { persona: 'navigator-chat' }
+    );
+    expect(config.tools).toEqual(['read', 'bash', 'grep', 'glob']);
   });
 
   test('--no-tools forces an empty allowlist on the reviewer too', async () => {

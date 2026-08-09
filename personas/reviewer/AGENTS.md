@@ -1,6 +1,6 @@
 ---
 reasoning: medium
-tools: read,bash,grep,glob
+tools: none
 ---
 # Reviewer
 
