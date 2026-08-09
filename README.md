@@ -12,7 +12,7 @@ Instead, use an economical agent like DeepSeek V4 ($0.14/$0.28) or GLM 5.2 ($1.4
 
 The driver writes the code. Veda brings in frontier intelligence only where it earns its cost.
 
-Veda is that consultation channel. It wraps codex, claude-code, droid, and pi behind personas (navigator-plan, navigator-chat, reviewer, worker).
+Veda is that consultation channel. It wraps codex, claude-code, droid, pi, and agy (Google Antigravity CLI) behind personas (navigator-plan, navigator-chat, reviewer, worker).
 
 ### Heavy thinking, based on a few academic papers
 
@@ -29,7 +29,7 @@ Veda's deep mode runs parallel solvers, each using a different strategy. A judge
 ## Prerequisites
 
 - **A backend CLI**, installed and authenticated:
-  - [codex](https://github.com/openai/codex), [claude-code](https://docs.anthropic.com/en/docs/claude-code/overview), [pi](https://github.com/jetdraft-pi), or [droid](https://github.com/droid-ai/droid)
+  - [codex](https://github.com/openai/codex), [claude-code](https://docs.anthropic.com/en/docs/claude-code/overview), [pi](https://github.com/jetdraft-pi), [droid](https://github.com/droid-ai/droid), or [agy](https://antigravity.google/product/antigravity-cli) (`brew install --cask antigravity-cli`, then authenticate once with an interactive `agy` session)
 
 ## Quick Start
 
@@ -113,6 +113,7 @@ veda -b codex "..."        # OpenAI Codex (default)
 veda -b claude-code "..."  # Anthropic Claude Code
 veda -b droid "..."        # Factory Droid (droid exec)
 veda -b pi "..."          # pi CLI (any provider/model from ~/.pi/agent/models.json)
+veda -b agy "..."         # Google Antigravity CLI (agy headless mode)
 ```
 
 **Note on reasoning configuration:**
@@ -120,6 +121,7 @@ veda -b pi "..."          # pi CLI (any provider/model from ~/.pi/agent/models.j
 - **Claude Code:** Maps `--reasoning` levels to the `MAX_THINKING_TOKENS` environment variable automatically.
 - **pi CLI:** Maps `--reasoning` to pi's `--thinking` flag and `--sandbox` to pi's `--tools` flag. Supports any provider/model defined in `~/.pi/agent/models.json`.
 - **Droid:** Maps `--reasoning` to `-r` flag and `--sandbox` to `--auto` flag. Supports any model available to `droid exec`.
+- **agy:** Maps `--reasoning` to `--effort low|medium|high` (six veda levels clamp: minimal/low→low, high/xhigh/max→high). Capability-suffixed slugs like `gemini-3.1-pro-high` encode their own effort, so `--effort` is omitted for those. Tool policy is advisory: agy has no per-run tool allowlist, so persona tool limits ride in the system prompt and agy's permission rules arbitrate. `--sandbox full` maps to `--dangerously-skip-permissions`; read-only and workspace-write use agy's defaults (workspace file writes are auto-allowed; shell commands soft-deny). `veda resume` continues agy conversations by explicit conversation id. Models: `agy models` lists valid slugs (`gemini-3.1-pro-high`, `claude-sonnet-4-6`, ...); an unknown slug fails loudly.
 
 ### Use Model Aliases
 
@@ -139,6 +141,12 @@ veda -m gpt "..."       # Uses codex with gpt-5.2
 veda -m pi/wafer/glm-5.1 "..."                        # wafer provider
 veda -m pi/fireworks/accounts/fireworks/routers/kimi-k2p6 "..."  # fireworks provider
 veda -m pi/neuralwatt/moonshotai/Kimi-K2.6 "..."      # neuralwatt provider
+
+# Antigravity models (→ agy backend)
+veda -m gemini "..."              # Uses agy with gemini-3.1-pro-high
+veda -m agy-flash "..."           # Uses agy with gemini-3.6-flash-medium
+veda -m agy/gemini-3.6-flash-low "..."  # agy/ prefix auto-infers the agy backend
+veda -b agy -m claude-sonnet-4-6 "..."  # agy-hosted Claude (needs explicit -b; bare claude-* goes to claude-code)
 ```
 
 When you specify both `-b` and `-m`, the model is passed literally (no alias resolution).
@@ -456,7 +464,7 @@ veda deep [options] <prompt>
 Options:
   -S, --session <id>     Session ID (or VEDA_SESSION env)
   -p, --persona <name>   navigator-plan|navigator-chat|reviewer|worker
-  -b, --backend <name>   codex|claude-code|droid|pi
+  -b, --backend <name>   codex|claude-code|droid|pi|agy
   -m, --model <model>    Model or alias (opus|sonnet|haiku|gpt|glm-5.2|makora|pi/<provider>/<model-id>)
   -r, --reasoning <lvl>  minimal|low|medium|high|xhigh|max
   -k <n>                 Solver count for deep mode (default: 3, max: 8)
@@ -482,7 +490,7 @@ Deep Mode Stage Overrides:
 ```
 src/
 ├── core/          # Deep primitives (llm, ensemble, judge, verify, modules)
-├── backend/       # codex.ts, claude.ts, droid.ts, pi.ts
+├── backend/       # codex.ts, claude.ts, droid.ts, pi.ts, agy.ts
 ├── pipelines/     # deep-think.ts (orchestration)
 ├── context/       # Selection and slice management
 ├── conversation/  # Thread persistence

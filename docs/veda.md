@@ -3,7 +3,8 @@
 ## What it is
 
 `veda` is a CLI your agent consults to plan, delegate implementation, and
-verify work. It wraps codex, claude-code, droid, and pi behind **personas** —
+verify work. It wraps codex, claude-code, droid, pi, and agy (Google
+Antigravity CLI) behind **personas** —
 seats with distinct capabilities and handoff contracts. You drive; veda's
 personas advise, implement (via the worker), and review (via the reviewer).
 
@@ -108,13 +109,33 @@ revise `design.json` yourself, then re-delegate to the worker.
 ## Models
 
 - Aliases: `-m sol` (gpt-5.6-sol, codex, max), `-m k3` (kimi-k3, pi, max),
-  `-m flash` (pi/neuralwatt/deepseek-v4-flash — cheap, good for worker runs).
-- `pi/...` model strings auto-infer the pi backend; `gpt-...` → codex;
+  `-m flash` (pi/neuralwatt/deepseek-v4-flash — cheap, good for worker runs),
+  `-m gemini` (gemini-3.1-pro-high, agy), `-m agy-flash` (gemini-3.6-flash-medium, agy).
+- `pi/...` model strings auto-infer the pi backend; `agy/...` auto-infers agy;
+  `gpt-...` → codex;
   `claude-...` → claude-code. `-b` forces a backend.
 - User aliases: `MODEL_ALIASES="name=full-model[:reasoning]"` in
   `~/.config/veda/config` — overrides the built-ins everywhere `-m` works.
 - Reasoning ladder: `minimal|low|medium|high|xhigh|max`. Explicit
   `--reasoning` beats persona default, which beats alias hint.
+
+### agy backend notes
+
+- Install: `brew install --cask antigravity-cli`, then authenticate once with
+  an interactive `agy` session (headless runs use the cached credentials).
+- Reasoning clamps: six veda levels map to agy's three (`minimal|low → low`,
+  `high|xhigh|max → high`). Capability-suffixed slugs (`gemini-3.1-pro-high`)
+  encode effort in the name, so `--effort` is omitted for them.
+- Tool policy is advisory: agy has no per-run tool allowlist, so persona
+  `tools: none` rides in the system prompt and agy's permission rules
+  arbitrate. Headless soft-denials appear as tool errors in the trace and
+  the run still completes. `--sandbox full` adds
+  `--dangerously-skip-permissions`; read-only and workspace-write use agy
+  defaults (workspace writes auto-allowed, shell soft-denied).
+- Resume works by explicit conversation id (`veda resume` after an agy run).
+- Per-backend overrides follow the generic convention: `AGY_MODEL`,
+  `AGY_REASONING` in `~/.config/veda/config`; deep-mode stages accept agy via
+  `--solver-models gemini,k3`, `--judge-backend agy`, `DEEP_*` keys.
 
 ## Where things live
 
