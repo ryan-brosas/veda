@@ -35,6 +35,7 @@ const MODEL_PREFIX_TO_BACKEND: Record<string, string> = {
   'o3-': 'codex',
   'claude-': 'claude-code',
   'pi/': 'pi',
+  'agy/': 'agy',
 };
 
 function inferBackendFromPrefix(model: string): string | undefined {
@@ -145,6 +146,16 @@ export function resolveBackendModel(opts: ResolveOptions): ResolvedBackendModel 
     if (globalAlias && globalAlias.backend !== backend) {
       // Global model alias doesn't match our backend, use backend default
       model = getBackendDefaultModelForStage(backend, stage) ?? 'unknown';
+    } else if (!globalAlias) {
+      // Raw model string: apply it only when its prefix belongs to this
+      // backend (or it has no known prefix); a foreign raw model must not
+      // leak across an explicit -b switch onto a strict backend.
+      const inferred = inferBackendFromPrefix(globalConfig.model);
+      if (!inferred || inferred === backend) {
+        model = globalConfig.model;
+      } else {
+        model = getBackendDefaultModelForStage(backend, stage) ?? 'unknown';
+      }
     } else {
       model = globalConfig.model;
     }

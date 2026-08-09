@@ -21,6 +21,10 @@ export const MODEL_ALIASES: Record<string, ModelAliasTarget> = {
   'glm': { backend: 'pi', model: 'pi/makora/zai-org/GLM-5.2-NVFP4', reasoning: 'xhigh' },
   'k3': { backend: 'pi', model: 'pi/neuralwatt/kimi-k3', reasoning: 'max' },
   'sol': { backend: 'codex', model: 'gpt-5.6-sol', reasoning: 'max' },
+
+  // Antigravity models (via agy CLI). Bare native slugs; backend is explicit.
+  'gemini': { backend: 'agy', model: 'gemini-3.1-pro-high' },
+  'agy-flash': { backend: 'agy', model: 'gemini-3.6-flash-medium' },
 };
 
 export interface UserAliases {
@@ -64,6 +68,7 @@ function inferAliasBackend(model: string): string | undefined {
   const normalized = model.trim().toLowerCase();
   const prefixes: Array<[string, string]> = [
     ['pi/', 'pi'],
+    ['agy/', 'agy'],
     ['gpt-', 'codex'],
     ['o1-', 'codex'],
     ['o3-', 'codex'],

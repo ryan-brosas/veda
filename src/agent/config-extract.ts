@@ -17,6 +17,7 @@ const MODEL_PREFIX_TO_BACKEND: Record<string, string> = {
   'o3-': 'codex',
   'claude-': 'claude-code',
   'pi/': 'pi',
+  'agy/': 'agy',
 };
 
 /**
@@ -156,7 +157,8 @@ export function determineModelForResolution(
   aliasTarget: AliasTarget | undefined,
   useAlias: boolean,
   fallbackModel: string | undefined,
-  globalConfigModel: string | undefined
+  globalConfigModel: string | undefined,
+  explicitBackend?: string | undefined
 ): string | undefined {
   // Explicit model takes precedence
   if (explicitModel) {
@@ -179,6 +181,13 @@ export function determineModelForResolution(
   if (globalConfigModel) {
     if (useAlias && aliasTarget) {
       return aliasTarget.model;
+    }
+    // The global model is config, not a user-explicit -m. When an explicit
+    // backend is in play, the alias was vetoed for it; pass undefined so
+    // resolveModel() can arbitrate the global value against that backend
+    // (foreign aliases/models fall through to the backend default).
+    if (explicitBackend) {
+      return undefined;
     }
     return globalConfigModel;
   }
@@ -240,7 +249,8 @@ export function resolveBackendModelExtracted(
     aliasTarget,
     useAlias ?? false,
     fallbackModel,
-    globalConfig?.model
+    globalConfig?.model,
+    explicitBackend
   );
 
   // Final model resolution using the provided resolveModel function

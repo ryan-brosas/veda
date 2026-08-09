@@ -232,6 +232,28 @@ export function isValidSandbox(mode: string): mode is SandboxMode {
   return ['read-only', 'workspace-write', 'full'].includes(mode);
 }
 
+/**
+ * Infer the backend a raw model string belongs to from its prefix.
+ * Mirrors MODEL_PREFIX_TO_BACKEND in config-extract.ts; duplicated here to
+ * avoid an import cycle (config-extract imports types from this module).
+ * Returns undefined for unprefixed names, which are treated as portable.
+ */
+function inferBackendFromModelPrefix(model: string): string | undefined {
+  const normalized = model.trim().toLowerCase();
+  const prefixes: Array<[string, string]> = [
+    ['pi/', 'pi'],
+    ['agy/', 'agy'],
+    ['gpt-', 'codex'],
+    ['o1-', 'codex'],
+    ['o3-', 'codex'],
+    ['claude-', 'claude-code'],
+  ];
+  for (const [prefix, backend] of prefixes) {
+    if (normalized.startsWith(prefix)) return backend;
+  }
+  return undefined;
+}
+
 export function parseSandboxMode(input: string): SandboxMode | undefined {
   switch (input.toLowerCase()) {
     case 'read-only':
@@ -264,8 +286,16 @@ export function resolveModel(options: ResolveModelOptions): string | undefined {
 
   if (globalConfig?.model) {
     const alias = tryResolveAliasTarget(globalConfig.model, globalConfig.modelAliases);
-    if (!alias || alias.backend === backend) {
-      return globalConfig.model;
+    if (!alias) {
+      // Not an alias: a raw model string. Apply it only when it plausibly
+      // belongs to this backend (known prefix match or an unprefixed name),
+      // otherwise it leaks a foreign model across an explicit -b switch.
+      const inferred = inferBackendFromModelPrefix(globalConfig.model);
+      if (!inferred || inferred === backend) {
+        return globalConfig.model;
+      }
+    } else if (alias.backend === backend) {
+      return alias.model;
     }
   }
 
@@ -294,8 +324,13 @@ export function resolveModelForStage(options: ResolveModelForStageOptions): stri
 
   if (globalConfig?.model) {
     const alias = tryResolveAliasTarget(globalConfig.model, globalConfig.modelAliases);
-    if (!alias || alias.backend === backend) {
-      return globalConfig.model;
+    if (!alias) {
+      const inferred = inferBackendFromModelPrefix(globalConfig.model);
+      if (!inferred || inferred === backend) {
+        return globalConfig.model;
+      }
+    } else if (alias.backend === backend) {
+      return alias.model;
     }
   }
 

@@ -128,10 +128,12 @@ describe('listModelAliases', () => {
     expect(aliases).toContain('glm');
     expect(aliases).toContain('k3');
     expect(aliases).toContain('sol');
+    expect(aliases).toContain('gemini');
+    expect(aliases).toContain('agy-flash');
   });
 
   test('returns expected count', () => {
-    expect(listModelAliases().length).toBe(8);
+    expect(listModelAliases().length).toBe(10);
   });
 });
 
@@ -178,13 +180,13 @@ describe('parseModelAliases and user alias overrides', () => {
   });
 
   test('user alias resolves without built-in fallback', () => {
-    const user = parseModelAliases('flash=pi/neuralwatt/deepseek-v4-flash');
-    expect(resolveModelAlias('flash', user)).toEqual({ backend: 'pi', model: 'pi/neuralwatt/deepseek-v4-flash' });
-    expect(resolveModelAlias('flash')).toBeUndefined(); // not built-in
+    const user = parseModelAliases('spark=pi/neuralwatt/deepseek-v4-flash');
+    expect(resolveModelAlias('spark', user)).toEqual({ backend: 'pi', model: 'pi/neuralwatt/deepseek-v4-flash' });
+    expect(resolveModelAlias('spark')).toBeUndefined(); // not built-in
   });
 
   test('extra aliases appear in the alias list', () => {
-    const user = parseModelAliases('flash=pi/neuralwatt/deepseek-v4-flash');
-    expect(listModelAliases(user)).toContain('flash');
+    const user = parseModelAliases('spark=pi/neuralwatt/deepseek-v4-flash');
+    expect(listModelAliases(user)).toContain('spark');
   });
 });

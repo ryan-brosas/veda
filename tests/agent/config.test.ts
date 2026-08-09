@@ -298,6 +298,50 @@ describe('resolveModel', () => {
       backend: 'claude-code',
     })).toBe('opus');
   });
+
+  test('global alias MODEL resolves to the alias target on its own backend', () => {
+    expect(resolveModel({
+      backend: 'codex',
+      globalConfig: { model: 'sol' },
+    })).toBe('gpt-5.6-sol');
+  });
+
+  test('global alias MODEL does not leak its name across an explicit foreign backend', () => {
+    // MODEL=sol (codex) + explicit -b agy must land on agy's default,
+    // never on the literal string "sol".
+    expect(resolveModel({
+      backend: 'agy',
+      globalConfig: { model: 'sol' },
+    })).toBe('gemini-3.1-pro-high');
+  });
+
+  test('global raw MODEL with a foreign prefix does not leak across an explicit backend', () => {
+    expect(resolveModel({
+      backend: 'agy',
+      globalConfig: { model: 'gpt-5.6-sol' },
+    })).toBe('gemini-3.1-pro-high');
+  });
+
+  test('global raw MODEL applies to the backend its prefix names', () => {
+    expect(resolveModel({
+      backend: 'codex',
+      globalConfig: { model: 'gpt-5.6-sol' },
+    })).toBe('gpt-5.6-sol');
+  });
+
+  test('global raw MODEL without a known prefix is portable across backends', () => {
+    expect(resolveModel({
+      backend: 'agy',
+      globalConfig: { model: 'some-custom-model' },
+    })).toBe('some-custom-model');
+  });
+
+  test('global alias MODEL targeting the same backend resolves to its target', () => {
+    expect(resolveModel({
+      backend: 'agy',
+      globalConfig: { model: 'gemini' },
+    })).toBe('gemini-3.1-pro-high');
+  });
 });
 
 describe('resolveBackendModel', () => {
