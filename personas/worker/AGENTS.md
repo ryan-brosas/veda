@@ -1,5 +1,4 @@
 ---
-reasoning: high
 tools: all
 sandbox: workspace-write
 ---

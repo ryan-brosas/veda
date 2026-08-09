@@ -1,5 +1,4 @@
 ---
-reasoning: high
 tools: none
 ---
 # Navigator — Plan (Architect + Program Design)

@@ -17,7 +17,6 @@ export async function handlePersonas(
     const persona = await loadPersona(subcommand);
     console.log(`# Persona: ${persona.name}`);
     console.log(`# Path: ${persona.path}`);
-    console.log(`# Default reasoning: ${persona.defaultReasoning}`);
     console.log('');
     console.log(persona.systemPrompt);
     return;
@@ -31,9 +30,8 @@ export async function handlePersonas(
   } else {
     console.log('Available personas:');
     for (const name of personas) {
-      const persona = await loadPersona(name);
       const desc = personaDescription(name);
-      console.log(`  ${name.padEnd(20)} ${desc}  (reasoning: ${persona.defaultReasoning})`);
+      console.log(`  ${name.padEnd(20)} ${desc}`);
     }
     console.log('');
     console.log('Run "veda personas <name>" to view a persona\'s system prompt.');
@@ -45,7 +43,7 @@ function personaDescription(name: string): string {
     case 'navigator-plan':
       return 'Plan + structured program design';
     case 'navigator-chat':
-      return 'Medium-reasoning in-flight discussion';
+      return 'In-flight discussion and Q&A';
     case 'reviewer':
       return 'Code review — P0/P1/P2 findings against the diff + context';
     case 'worker':

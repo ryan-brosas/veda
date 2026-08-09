@@ -1,5 +1,4 @@
 ---
-reasoning: medium
 tools: none
 ---
 # Navigator — Chat

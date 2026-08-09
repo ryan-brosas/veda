@@ -23,25 +23,25 @@ describe('persona', () => {
     await mkdir(join(TEST_PERSONAS_DIR, 'navigator-plan'));
     await writeFile(
       join(TEST_PERSONAS_DIR, 'navigator-plan', 'AGENTS.md'),
-      '---\nreasoning: high\ntools: read,grep,glob\n---\n# Navigator Plan\n\nYou are a planning assistant.'
+      '---\ntools: read,grep,glob\n---\n# Navigator Plan\n\nYou are a planning assistant.'
     );
 
     await mkdir(join(TEST_PERSONAS_DIR, 'navigator-chat'));
     await writeFile(
       join(TEST_PERSONAS_DIR, 'navigator-chat', 'AGENTS.md'),
-      '---\nreasoning: medium\n---\n# Navigator Chat\n\nYou are a chat assistant.'
+      '---\n---\n# Navigator Chat\n\nYou are a chat assistant.'
     );
 
     await mkdir(join(TEST_PERSONAS_DIR, 'reviewer'));
     await writeFile(
       join(TEST_PERSONAS_DIR, 'reviewer', 'AGENTS.md'),
-      '---\nreasoning: medium\ntools: none\n---\n# Reviewer\n\nYou are a code reviewer.'
+      '---\ntools: none\n---\n# Reviewer\n\nYou are a code reviewer.'
     );
 
     await mkdir(join(TEST_PERSONAS_DIR, 'worker'));
     await writeFile(
       join(TEST_PERSONAS_DIR, 'worker', 'AGENTS.md'),
-      '---\nreasoning: high\ntools: all\nsandbox: workspace-write\n---\n# Worker\n\nYou implement tasks.'
+      '---\ntools: all\nsandbox: workspace-write\n---\n# Worker\n\nYou implement tasks.'
     );
 
     // Create empty directory (should not be listed)
@@ -70,14 +70,11 @@ describe('persona', () => {
       await expect(loadPersona('nonexistent', TEST_BASE)).rejects.toThrow('Persona not found');
     });
 
-    test('uses correct default reasoning per persona', async () => {
+    test('loads persona tool policy per persona', async () => {
       const plan = await loadPersona('navigator-plan', TEST_BASE);
       const chat = await loadPersona('navigator-chat', TEST_BASE);
       const reviewer = await loadPersona('reviewer', TEST_BASE);
-      
-      expect(plan.defaultReasoning).toBe('high');
-      expect(chat.defaultReasoning).toBe('medium');
-      expect(reviewer.defaultReasoning).toBe('medium');
+      // Personas carry tool policy, not reasoning.
       expect(plan.tools).toEqual(['read', 'grep', 'glob']);
       expect(chat.tools).toBeUndefined();
       expect(reviewer.tools).toEqual([]);
@@ -136,7 +133,7 @@ describe('persona', () => {
       );
       
       expect(config.model).toBe('gpt-5.2');  // codex built-in default
-      expect(config.reasoning).toBe('medium'); // from persona default
+      expect(config.reasoning).toBe('medium'); // backend default (no persona tier)
       expect(config.systemPrompt).toContain('chat assistant');
     });
 
@@ -158,16 +155,16 @@ describe('persona', () => {
       expect(config.reasoning).toBe('high');
     });
 
-    test('persona reasoning takes precedence over model alias reasoning', async () => {
+    test('model/alias reasoning is used when no -r flag', async () => {
       const config = await resolveAgentConfig(
         { aliasReasoning: 'high', backend: 'pi', baseDir: TEST_BASE },
         defaults
       );
 
-      expect(config.reasoning).toBe('medium');
+      expect(config.reasoning).toBe('high');
     });
 
-    test('explicit reasoning takes precedence over persona and alias reasoning', async () => {
+    test('explicit reasoning takes precedence over alias reasoning', async () => {
       const config = await resolveAgentConfig(
         { reasoning: 'low', aliasReasoning: 'high', backend: 'pi', baseDir: TEST_BASE },
         defaults
@@ -226,7 +223,7 @@ describe('persona', () => {
       );
       
       expect(config.systemPrompt).toContain('planning assistant');
-      expect(config.reasoning).toBe('high'); // persona default
+      expect(config.reasoning).toBe('medium'); // codex backend default (no persona tier)
     });
 
     test('uses inline system prompt', async () => {
@@ -290,8 +287,8 @@ describe('persona', () => {
         { backendReasoning: { 'codex': 'high' } }
       );
       
-      // persona reasoning takes precedence, but if no persona reasoning, backend config is used
-      expect(config.reasoning).toBe('medium'); // navigator-chat has medium reasoning
+      // No persona reasoning tier: backend-specific config applies directly.
+      expect(config.reasoning).toBe('high'); // codex backendReasoning
     });
 
     test('throws when backend is not specified', async () => {
@@ -311,7 +308,7 @@ describe('persona metadata (additive design)', () => {
       expect(metadata).toEqual({});
     });
 
-    test('parses reasoning from frontmatter', () => {
+    test('reasoning frontmatter is ignored (not persona-scoped)', () => {
       const content = `---
 reasoning: high
 ---
@@ -319,17 +316,16 @@ reasoning: high
 
 You are a helper.`;
       const metadata = parsePersonaMetadata(content);
-      expect(metadata).toEqual({ reasoning: 'high' });
+      expect(metadata).toEqual({});
     });
 
     test('parses a comma-separated tool allowlist', () => {
       const content = `---
-reasoning: medium
 tools: read, grep, glob
 ---
 # Persona`;
       const metadata = parsePersonaMetadata(content);
-      expect(metadata).toEqual({ reasoning: 'medium', tools: ['read', 'grep', 'glob'] });
+      expect(metadata).toEqual({ tools: ['read', 'grep', 'glob'] });
     });
 
     test('parses tools none as an empty allowlist', () => {
@@ -341,40 +337,17 @@ tools: none
       expect(metadata).toEqual({ tools: [] });
     });
 
-    test('parses all valid reasoning levels', () => {
-      const levels: ('minimal' | 'low' | 'medium' | 'high' | 'xhigh')[] =
-        ['minimal', 'low', 'medium', 'high', 'xhigh'];
-
-      for (const level of levels) {
-        const content = `---
-reasoning: ${level}
----
-# Persona`;
-        const metadata = parsePersonaMetadata(content);
-        expect(metadata.reasoning).toBe(level);
-      }
-    });
-
-    test('ignores invalid reasoning level', () => {
-      const content = `---
-reasoning: invalid
----
-# Persona`;
-      const metadata = parsePersonaMetadata(content);
-      expect(metadata.reasoning).toBeUndefined();
-    });
-
     test('ignores comments in frontmatter', () => {
       const content = `---
 # This is a comment
-reasoning: medium
+tools: read
 ---
 # Persona`;
       const metadata = parsePersonaMetadata(content);
-      expect(metadata.reasoning).toBe('medium');
+      expect(metadata).toEqual({ tools: ['read'] });
     });
 
-    test('ignores unsupported frontmatter fields', () => {
+    test('ignores unsupported frontmatter fields (incl. reasoning)', () => {
       const content = `---
 name: custom
 reasoning: xhigh
@@ -382,34 +355,7 @@ version: 1.0
 ---
 # Persona`;
       const metadata = parsePersonaMetadata(content);
-      expect(metadata).toEqual({ reasoning: 'xhigh' });
-    });
-
-    test('handles reasoning with extra spaces', () => {
-      const content = `---
-reasoning:   high   
----
-# Persona`;
-      const metadata = parsePersonaMetadata(content);
-      expect(metadata.reasoning).toBe('high');
-    });
-
-    test('handles lowercase reasoning', () => {
-      const content = `---
-reasoning: LOW
----
-# Persona`;
-      const metadata = parsePersonaMetadata(content);
-      expect(metadata.reasoning).toBeUndefined();
-    });
-
-    test('handles quoted reasoning value', () => {
-      const content = `---
-reasoning: "medium"
----
-# Persona`;
-      const metadata = parsePersonaMetadata(content);
-      expect(metadata.reasoning).toBeUndefined(); // Quotes not supported in simple parser
+      expect(metadata).toEqual({});
     });
 
     test('parses tools all as the full-toolset marker', () => {
@@ -460,12 +406,12 @@ sandbox: read-only
 
   describe('loadPersona with metadata', () => {
     beforeEach(async () => {
-      // Create persona with frontmatter
+      // Create persona with tools frontmatter (reasoning is not persona-scoped).
       await mkdir(join(TEST_PERSONAS_DIR, 'meta-persona'), { recursive: true });
       await writeFile(
         join(TEST_PERSONAS_DIR, 'meta-persona', 'AGENTS.md'),
         `---
-reasoning: xhigh
+tools: read,grep
 ---
 # Meta Persona
 
@@ -475,74 +421,30 @@ You are a test persona with metadata.`
 
     test('parses metadata from frontmatter', async () => {
       const persona = await loadPersona('meta-persona', TEST_BASE);
-      expect(persona.metadata).toEqual({ reasoning: 'xhigh' });
-      expect(persona.defaultReasoning).toBe('xhigh');
+      expect(persona.metadata).toEqual({ tools: ['read', 'grep'] });
+      expect(persona.tools).toEqual(['read', 'grep']);
     });
 
     test('param metadata overrides frontmatter', async () => {
       const persona = await loadPersona('meta-persona', {
         baseDir: TEST_BASE,
-        metadata: { reasoning: 'minimal' },
+        metadata: { tools: 'all' },
       });
-      expect(persona.defaultReasoning).toBe('minimal'); // Param overrides frontmatter
-      expect(persona.metadata).toEqual({ reasoning: 'xhigh' }); // Frontmatter still parsed
+      expect(persona.tools).toBe('all'); // Param overrides frontmatter
+      expect(persona.metadata).toEqual({ tools: ['read', 'grep'] }); // Frontmatter still parsed
     });
 
-    test('frontmatter takes precedence over default', async () => {
-      // Create persona with frontmatter to verify it's used over default
+    test('no tools in frontmatter leaves tools undefined', async () => {
       await mkdir(join(TEST_PERSONAS_DIR, 'override-persona'), { recursive: true });
       await writeFile(
         join(TEST_PERSONAS_DIR, 'override-persona', 'AGENTS.md'),
-        `---
-reasoning: low
----
-# Override Persona
+        `# Override Persona
 
-You use frontmatter reasoning.`
+No frontmatter here.`
       );
 
       const persona = await loadPersona('override-persona', TEST_BASE);
-      expect(persona.defaultReasoning).toBe('low'); // From frontmatter
-    });
-  });
-
-  describe('precedence chain', () => {
-    beforeEach(async () => {
-      // Create persona with frontmatter
-      await mkdir(join(TEST_PERSONAS_DIR, 'precedence-persona'), { recursive: true });
-      await writeFile(
-        join(TEST_PERSONAS_DIR, 'precedence-persona', 'AGENTS.md'),
-        `---
-reasoning: medium
----
-# Precedence Persona
-
-You test precedence.`
-      );
-    });
-
-    test('param takes precedence over frontmatter', async () => {
-      const persona = await loadPersona('precedence-persona', {
-        baseDir: TEST_BASE,
-        metadata: { reasoning: 'xhigh' },
-      });
-      expect(persona.defaultReasoning).toBe('xhigh');
-    });
-
-    test('frontmatter takes precedence over default', async () => {
-      const persona = await loadPersona('precedence-persona', TEST_BASE);
-      expect(persona.defaultReasoning).toBe('medium'); // From frontmatter
-    });
-
-    test('default fallback when no metadata available', async () => {
-      await mkdir(join(TEST_PERSONAS_DIR, 'no-meta-persona'), { recursive: true });
-      await writeFile(
-        join(TEST_PERSONAS_DIR, 'no-meta-persona', 'AGENTS.md'),
-        '# No Metadata\n\nYou have no metadata.'
-      );
-
-      const persona = await loadPersona('no-meta-persona', TEST_BASE);
-      expect(persona.defaultReasoning).toBe('medium'); // Default fallback
+      expect(persona.tools).toBeUndefined();
     });
   });
 });
@@ -550,11 +452,9 @@ You test precedence.`
 describe('worker persona — write-capable defaults', () => {
   test('loadPersona(worker) yields frontmatter metadata', async () => {
     const persona = await loadPersona('worker', TEST_BASE);
-    expect(persona.defaultReasoning).toBe('high');
     expect(persona.tools).toBe('all');
     expect(persona.defaultSandbox).toBe('workspace-write');
     expect(persona.metadata).toEqual({
-      reasoning: 'high',
       tools: 'all',
       sandbox: 'workspace-write',
     });
@@ -619,16 +519,14 @@ describe('worker persona — write-capable defaults', () => {
 
   test('embedded worker persona is available without a config-dir copy', async () => {
     const persona = await loadPersona('worker', '/nonexistent/path');
-    expect(persona.defaultReasoning).toBe('high');
     expect(persona.tools).toBe('all');
     expect(persona.defaultSandbox).toBe('workspace-write');
   });
 });
 
 describe('reviewer persona — code review, tools off by default', () => {
-  test('embedded reviewer loads with reasoning medium + no tools', async () => {
+  test('embedded reviewer loads with no tools by default', async () => {
     const persona = await loadPersona('reviewer', '/nonexistent/path');
-    expect(persona.defaultReasoning).toBe('medium');
     expect(persona.tools).toEqual([]);
   });
 

@@ -39,7 +39,6 @@ export async function readPersonaForInit(name: string): Promise<string | undefin
 }
 
 export interface PersonaMetadata {
-  reasoning?: ReasoningLevel;
   /** Tool allowlist. An empty array means no tools; 'all' grants the backend's full toolset. */
   tools?: string[] | 'all';
   /** Sandbox mode requested by the persona (worker defaults to workspace-write). */
@@ -51,7 +50,6 @@ export interface Persona {
   name: string;
   systemPrompt: string;
   path: string;
-  defaultReasoning: ReasoningLevel;
   tools?: string[] | 'all';
   /** Sandbox mode from frontmatter (falls below an explicit --sandbox flag). */
   defaultSandbox?: SandboxMode;
@@ -66,7 +64,8 @@ export interface LoadPersonaOptions {
 /**
  * Parse persona metadata from YAML frontmatter.
  * Supports simple scalar values: key: value
- * Preserves reasoning: minimal|low|medium|high|xhigh|max
+ * Reasoning is intentionally not persona-scoped — it resolves at the run level
+ * (-r flag → alias hint → config → backend default), never from a persona.
  */
 export function parsePersonaMetadata(content: string): PersonaMetadata {
   // Extract frontmatter between --- delimiters
@@ -89,13 +88,7 @@ export function parsePersonaMetadata(content: string): PersonaMetadata {
         const normalizedKey = key.trim();
         const normalizedValue = value.trim();
 
-        if (normalizedKey === 'reasoning') {
-          // Validate reasoning level
-          const validReasoning: ReasoningLevel[] = ['minimal', 'low', 'medium', 'high', 'xhigh', 'max'];
-          if (validReasoning.includes(normalizedValue as ReasoningLevel)) {
-            metadata.reasoning = normalizedValue as ReasoningLevel;
-          }
-        } else if (normalizedKey === 'tools') {
+        if (normalizedKey === 'tools') {
           const lower = normalizedValue.toLowerCase();
           if (lower === 'none') {
             metadata.tools = [];
@@ -136,14 +129,10 @@ export async function loadPersona(name: string, optionsOrBaseDir?: LoadPersonaOp
   if (await configFile.exists()) {
     const systemPrompt = await configFile.text();
     const frontmatterMetadata = parsePersonaMetadata(systemPrompt);
-    const defaultReasoning = options.metadata?.reasoning
-      ?? frontmatterMetadata.reasoning
-      ?? 'medium';
     return {
       name,
       systemPrompt,
       path: configDirPath,
-      defaultReasoning,
       tools: options.metadata?.tools ?? frontmatterMetadata.tools,
       defaultSandbox: frontmatterMetadata.sandbox,
       metadata: frontmatterMetadata,
@@ -154,14 +143,10 @@ export async function loadPersona(name: string, optionsOrBaseDir?: LoadPersonaOp
   const embedded = await readEmbeddedPersona(name);
   if (embedded !== undefined) {
     const frontmatterMetadata = parsePersonaMetadata(embedded);
-    const defaultReasoning = options.metadata?.reasoning
-      ?? frontmatterMetadata.reasoning
-      ?? 'medium';
     return {
       name,
       systemPrompt: embedded,
       path: EMBEDDED_PERSONA_PATHS[name],
-      defaultReasoning,
       tools: options.metadata?.tools ?? frontmatterMetadata.tools,
       defaultSandbox: frontmatterMetadata.sandbox,
       metadata: frontmatterMetadata,
@@ -227,7 +212,6 @@ export async function resolveAgentConfig(
   
   let systemPrompt: string;
   let systemPromptPath: string | undefined;
-  let personaReasoning: ReasoningLevel | undefined;
   let personaTools: string[] | 'all' | undefined;
   let personaSandbox: SandboxMode | undefined;
   
@@ -237,7 +221,6 @@ export async function resolveAgentConfig(
     const persona = await loadPersona(personaName, options.baseDir);
     systemPrompt = persona.systemPrompt;
     systemPromptPath = persona.path;
-    personaReasoning = persona.defaultReasoning;
     personaTools = persona.tools;
     personaSandbox = persona.defaultSandbox;
   }
@@ -251,9 +234,12 @@ export async function resolveAgentConfig(
     explicitModel: options.model,
     globalConfig,
   });
-  
-  const reasoning = options.reasoning 
-    ?? personaReasoning 
+
+  // Reasoning precedence: -r flag, then the model/alias hint, then config
+  // (REASONING / <BACKEND>_REASONING), then the backend default. Personas
+  // intentionally have no reasoning tier — reasoning follows the model, not
+  // the persona.
+  const reasoning = options.reasoning
     ?? options.aliasReasoning
     ?? resolveReasoning({
         backend: options.backend,
