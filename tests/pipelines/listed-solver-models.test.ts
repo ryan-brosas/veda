@@ -34,6 +34,14 @@ describe('listed mode — uniform prompt', () => {
     expect(planned).toEqual([undefined, undefined, undefined]);
   });
 
+  test('solvers request no tools regardless of backend (droid included)', () => {
+    const solver = makeSolver({ slots, uniformPrompt: true });
+    const { members } = buildSolverMembers(P, solver, planSolverModules(solver));
+    for (const m of members) {
+      expect(m.request.tools).toEqual([]);
+    }
+  });
+
   test('every member gets the byte-identical SOLVER_SYSTEM_PROMPT (Invariant 1)', () => {
     const solver = makeSolver({ slots, uniformPrompt: true });
     const { members } = buildSolverMembers(P, solver, planSolverModules(solver));
