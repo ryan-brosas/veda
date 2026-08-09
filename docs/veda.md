@@ -108,9 +108,12 @@ revise `design.json` yourself, then re-delegate to the worker.
 
 ## Models
 
-- Aliases: `-m sol` (gpt-5.6-sol, codex, max), `-m k3` (kimi-k3, pi, max),
-  `-m flash` (pi/neuralwatt/deepseek-v4-flash — cheap, good for worker runs),
-  `-m gemini` (gemini-3.1-pro-high, agy), `-m agy-flash` (gemini-3.6-flash-medium, agy).
+- Aliases: `-m sol` (gpt-5.6-sol, codex, high), `-m terra` (gpt-5.6-terra, codex, high),
+  `-m luna` (gpt-5.6-luna, codex, high), `-m fable` (claude-fable-5, droid),
+  `-m gemini-pro` (gemini-3.1-pro-high, agy), `-m gemini-flash` (gemini-3.6-flash-high, agy),
+  `-m gemini-lite` (gemini-3.5-flash-low, agy). pi has no built-in aliases; set your own
+  via `MODEL_ALIASES` (e.g. `k3=pi/neuralwatt/kimi-k3:max`, `glm=pi/makora/zai-org/GLM-5.2-NVFP4:xhigh`),
+  plus `-m flash` (pi/neuralwatt/deepseek-v4-flash — cheap, good for worker runs).
 - `pi/...` model strings auto-infer the pi backend; `agy/...` auto-infers agy;
   `gpt-...` → codex;
   `claude-...` → claude-code. `-b` forces a backend.
@@ -135,7 +138,7 @@ revise `design.json` yourself, then re-delegate to the worker.
 - Resume works by explicit conversation id (`veda resume` after an agy run).
 - Per-backend overrides follow the generic convention: `AGY_MODEL`,
   `AGY_REASONING` in `~/.config/veda/config`; deep-mode stages accept agy via
-  `--solver-models gemini,k3`, `--judge-backend agy`, `DEEP_*` keys.
+  `--solver-models sol,gemini-flash`, `--judge-backend agy`, `DEEP_*` keys.
 
 ## Where things live
 

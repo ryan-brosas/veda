@@ -18,16 +18,24 @@ function resolveSolver(flags: RawFlags, globalConfig?: GlobalConfig) {
   return stages.solver;
 }
 
+// k3 is user-set (no built-in pi alias). Define it via MODEL_ALIASES so these
+// tests exercise a pi slot with a reasoning hint exactly as a user config would.
+const K3_USER_ALIAS = { modelAliases: { k3: { backend: 'pi', model: 'pi/neuralwatt/kimi-k3', reasoning: 'max' } } } as GlobalConfig;
+
+function withK3(extra?: GlobalConfig): GlobalConfig {
+  return { ...extra, modelAliases: { ...(K3_USER_ALIAS.modelAliases), ...(extra?.modelAliases ?? {}) } };
+}
+
 describe('resolveSolverConfig — listed mode', () => {
   test('aliases resolve to per-slot backend, model, and reasoning', () => {
     const flags = flagsFrom(['deep', '--solver-models', 'sol,k3,fable', 't']);
-    const solver = resolveSolver(flags);
+    const solver = resolveSolver(flags, withK3());
 
     expect(solver.mode).toBe('listed');
     if (solver.mode !== 'listed') return;
 
     expect(solver.slots).toEqual([
-      { backend: 'codex', model: 'gpt-5.6-sol', reasoning: 'max' },
+      { backend: 'codex', model: 'gpt-5.6-sol', reasoning: 'high' },
       { backend: 'pi', model: 'pi/neuralwatt/kimi-k3', reasoning: 'max' },
       { backend: 'droid', model: 'claude-fable-5', reasoning: 'medium' },
     ]);
@@ -45,7 +53,7 @@ describe('resolveSolverConfig — listed mode', () => {
 
   test('--solver-reasoning overrides per-slot alias hints', () => {
     const flags = flagsFrom(['deep', '--solver-models', 'sol,k3', '--solver-reasoning', 'low', 't']);
-    const solver = resolveSolver(flags);
+    const solver = resolveSolver(flags, withK3());
 
     if (solver.mode !== 'listed') throw new Error('expected listed mode');
     expect(solver.slots.map(s => s.reasoning)).toEqual(['low', 'low']);
@@ -53,7 +61,7 @@ describe('resolveSolverConfig — listed mode', () => {
 
   test('base -r overrides per-slot alias hints', () => {
     const flags = flagsFrom(['deep', '--solver-models', 'sol,k3', '-r', 'high', 't']);
-    const solver = resolveSolver(flags);
+    const solver = resolveSolver(flags, withK3());
 
     if (solver.mode !== 'listed') throw new Error('expected listed mode');
     expect(solver.slots.map(s => s.reasoning)).toEqual(['high', 'high']);
@@ -71,7 +79,7 @@ describe('resolveSolverConfig — listed mode', () => {
 
   test('config DEEP_SOLVER_MODELS activates listed mode', () => {
     const flags = flagsFrom(['deep', 't']);
-    const globalConfig = { deep: { solverModels: ['sol', 'k3'] } } as GlobalConfig;
+    const globalConfig = withK3({ deep: { solverModels: ['sol', 'k3'] } } as GlobalConfig);
     const solver = resolveSolver(flags, globalConfig);
 
     expect(solver.mode).toBe('listed');
@@ -83,7 +91,7 @@ describe('resolveSolverConfig — listed mode', () => {
 
   test('explicit CLI distribution suppresses config solverModels', () => {
     const flags = flagsFrom(['deep', '--distribute-solvers', '--solver-backends', 'codex', 't']);
-    const globalConfig = { deep: { solverModels: ['sol', 'k3'] } } as GlobalConfig;
+    const globalConfig = withK3({ deep: { solverModels: ['sol', 'k3'] } } as GlobalConfig);
     const solver = resolveSolver(flags, globalConfig);
 
     expect(solver.mode).toBe('distributed');
@@ -91,7 +99,7 @@ describe('resolveSolverConfig — listed mode', () => {
 
   test('-k must match config-provided list length', () => {
     const flags = flagsFrom(['deep', '-k', '4', 't']);
-    const globalConfig = { deep: { solverModels: ['sol', 'k3'] } } as GlobalConfig;
+    const globalConfig = withK3({ deep: { solverModels: ['sol', 'k3'] } } as GlobalConfig);
     try {
       resolveSolver(flags, globalConfig);
       throw new Error('expected CliValidationError');
@@ -104,7 +112,7 @@ describe('resolveSolverConfig — listed mode', () => {
 
   test('repeating an entry yields duplicate slots (explicit duplication)', () => {
     const flags = flagsFrom(['deep', '--solver-models', 'sol,sol,k3', 't']);
-    const solver = resolveSolver(flags);
+    const solver = resolveSolver(flags, withK3());
 
     if (solver.mode !== 'listed') throw new Error('expected listed mode');
     expect(solver.slots.map(s => s.model)).toEqual(['gpt-5.6-sol', 'gpt-5.6-sol', 'pi/neuralwatt/kimi-k3']);

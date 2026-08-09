@@ -194,8 +194,9 @@ describe('collectAliases', () => {
   test('returns aliases for the backend with origin tags', () => {
     const aliases = collectAliases('codex');
     const names = aliases.map(a => a.name);
-    expect(names).toContain('gpt');
     expect(names).toContain('sol');
+    expect(names).toContain('terra');
+    expect(names).toContain('luna');
     expect(aliases.find(a => a.name === 'sol')?.origin).toBe('built-in');
   });
 
@@ -207,9 +208,16 @@ describe('collectAliases', () => {
     expect(sol?.origin).toBe('user');
   });
 
-  test('filters to the requested backend only', () => {
-    const aliases = collectAliases('pi');
-    expect(aliases.every(a => ['glm', 'k3'].includes(a.name) || a.origin === 'user')).toBe(true);
+  test('pi has no built-in aliases; user MODEL_ALIASES supply them', () => {
+    // glm/k3 are user-set, so a bare pi collectAliases returns only user aliases.
+    expect(collectAliases('pi')).toEqual([]);
+    const user = {
+      glm: { backend: 'pi', model: 'pi/makora/zai-org/GLM-5.2-NVFP4', reasoning: 'xhigh' },
+      k3: { backend: 'pi', model: 'pi/neuralwatt/kimi-k3', reasoning: 'max' },
+    };
+    const aliases = collectAliases('pi', user);
+    expect(aliases.map(a => a.name).sort()).toEqual(['glm', 'k3']);
+    expect(aliases.every(a => a.origin === 'user')).toBe(true);
   });
 });
 

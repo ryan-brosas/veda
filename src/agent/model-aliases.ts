@@ -10,21 +10,20 @@ export const MODEL_ALIASES: Record<string, ModelAliasTarget> = {
   'opus': { backend: 'claude-code', model: 'opus' },
   'sonnet': { backend: 'claude-code', model: 'sonnet' },
   'haiku': { backend: 'claude-code', model: 'haiku' },
-  
+
   // OpenAI models (via codex)
-  'gpt': { backend: 'codex', model: 'gpt-5.3-codex' },
+  'sol': { backend: 'codex', model: 'gpt-5.6-sol', reasoning: 'high' },
+  'terra': { backend: 'codex', model: 'gpt-5.6-terra', reasoning: 'high' },
+  'luna': { backend: 'codex', model: 'gpt-5.6-luna', reasoning: 'high' },
 
   // Droid models (via droid exec)
   'fable': { backend: 'droid', model: 'claude-fable-5' },
 
-  // pi models (via pi CLI)
-  'glm': { backend: 'pi', model: 'pi/makora/zai-org/GLM-5.2-NVFP4', reasoning: 'xhigh' },
-  'k3': { backend: 'pi', model: 'pi/neuralwatt/kimi-k3', reasoning: 'max' },
-  'sol': { backend: 'codex', model: 'gpt-5.6-sol', reasoning: 'max' },
-
   // Antigravity models (via agy CLI). Bare native slugs; backend is explicit.
-  'gemini': { backend: 'agy', model: 'gemini-3.1-pro-high' },
-  'agy-flash': { backend: 'agy', model: 'gemini-3.6-flash-medium' },
+  'gemini-pro': { backend: 'agy', model: 'gemini-3.1-pro-high' },
+  'gemini-flash': { backend: 'agy', model: 'gemini-3.6-flash-high' },
+  // Note: no -lite tier exists in the agy catalog; lightest flash is -low.
+  'gemini-lite': { backend: 'agy', model: 'gemini-3.5-flash-low' },
 };
 
 export interface UserAliases {

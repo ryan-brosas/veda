@@ -39,24 +39,24 @@ describe('BackendModelResolver helpers', () => {
       expect(opus?.backend).toBe('claude-code');
       expect(opus?.model).toBe('opus');
 
-      const gpt = tryResolveAliasTarget('gpt');
-      expect(gpt?.backend).toBe('codex');
-      expect(gpt?.model).toBe('gpt-5.3-codex');
-
-      const glm = tryResolveAliasTarget('glm');
-      expect(glm?.backend).toBe('pi');
-      expect(glm?.model).toBe('pi/makora/zai-org/GLM-5.2-NVFP4');
-      expect(glm?.reasoning).toBe('xhigh');
+      const terra = tryResolveAliasTarget('terra');
+      expect(terra?.backend).toBe('codex');
+      expect(terra?.model).toBe('gpt-5.6-terra');
+      expect(terra?.reasoning).toBe('high');
 
       const sol = tryResolveAliasTarget('sol');
       expect(sol?.backend).toBe('codex');
       expect(sol?.model).toBe('gpt-5.6-sol');
-      expect(sol?.reasoning).toBe('max');
+      expect(sol?.reasoning).toBe('high');
+
+      const geminiPro = tryResolveAliasTarget('gemini-pro');
+      expect(geminiPro?.backend).toBe('agy');
+      expect(geminiPro?.model).toBe('gemini-3.1-pro-high');
     });
 
     test('is case insensitive', () => {
       expect(tryResolveAliasTarget('OPUS')).toEqual(tryResolveAliasTarget('opus'));
-      expect(tryResolveAliasTarget('GPT')).toEqual(tryResolveAliasTarget('gpt'));
+      expect(tryResolveAliasTarget('SOL')).toEqual(tryResolveAliasTarget('sol'));
     });
 
     test('trims whitespace', () => {

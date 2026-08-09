@@ -15,21 +15,25 @@ describe('MODEL_ALIASES', () => {
     expect(MODEL_ALIASES['haiku']).toEqual({ backend: 'claude-code', model: 'haiku' });
   });
 
-  test('contains OpenAI models', () => {
-    expect(MODEL_ALIASES['gpt']).toEqual({ backend: 'codex', model: 'gpt-5.3-codex' });
+  test('contains OpenAI (codex) models', () => {
+    expect(MODEL_ALIASES['sol']).toEqual({ backend: 'codex', model: 'gpt-5.6-sol', reasoning: 'high' });
+    expect(MODEL_ALIASES['terra']).toEqual({ backend: 'codex', model: 'gpt-5.6-terra', reasoning: 'high' });
+    expect(MODEL_ALIASES['luna']).toEqual({ backend: 'codex', model: 'gpt-5.6-luna', reasoning: 'high' });
   });
 
   test('contains Droid models', () => {
     expect(MODEL_ALIASES['fable']).toEqual({ backend: 'droid', model: 'claude-fable-5' });
   });
 
-  test('contains pi models with reasoning', () => {
-    expect(MODEL_ALIASES['glm']).toEqual({ backend: 'pi', model: 'pi/makora/zai-org/GLM-5.2-NVFP4', reasoning: 'xhigh' });
-    expect(MODEL_ALIASES['k3']).toEqual({ backend: 'pi', model: 'pi/neuralwatt/kimi-k3', reasoning: 'max' });
+  test('pi glm/k3 are user-set, not built-in', () => {
+    expect(MODEL_ALIASES['glm']).toBeUndefined();
+    expect(MODEL_ALIASES['k3']).toBeUndefined();
   });
 
-  test('contains codex models with reasoning', () => {
-    expect(MODEL_ALIASES['sol']).toEqual({ backend: 'codex', model: 'gpt-5.6-sol', reasoning: 'max' });
+  test('contains agy models', () => {
+    expect(MODEL_ALIASES['gemini-pro']).toEqual({ backend: 'agy', model: 'gemini-3.1-pro-high' });
+    expect(MODEL_ALIASES['gemini-flash']).toEqual({ backend: 'agy', model: 'gemini-3.6-flash-high' });
+    expect(MODEL_ALIASES['gemini-lite']).toEqual({ backend: 'agy', model: 'gemini-3.5-flash-low' });
   });
 });
 
@@ -57,29 +61,27 @@ describe('resolveModelAlias', () => {
     expect(resolveModelAlias('haiku')).toEqual({ backend: 'claude-code', model: 'haiku' });
   });
 
-  test('resolves OpenAI aliases', () => {
-    expect(resolveModelAlias('gpt')).toEqual({ backend: 'codex', model: 'gpt-5.3-codex' });
+  test('resolves OpenAI (codex) aliases', () => {
+    expect(resolveModelAlias('sol')).toEqual({ backend: 'codex', model: 'gpt-5.6-sol', reasoning: 'high' });
+    expect(resolveModelAlias('terra')).toEqual({ backend: 'codex', model: 'gpt-5.6-terra', reasoning: 'high' });
+    expect(resolveModelAlias('luna')).toEqual({ backend: 'codex', model: 'gpt-5.6-luna', reasoning: 'high' });
   });
 
   test('resolves Droid aliases', () => {
     expect(resolveModelAlias('fable')).toEqual({ backend: 'droid', model: 'claude-fable-5' });
   });
 
-  test('resolves pi aliases with reasoning', () => {
-    expect(resolveModelAlias('glm')).toEqual({ backend: 'pi', model: 'pi/makora/zai-org/GLM-5.2-NVFP4', reasoning: 'xhigh' });
-    expect(resolveModelAlias('k3')).toEqual({ backend: 'pi', model: 'pi/neuralwatt/kimi-k3', reasoning: 'max' });
-  });
-
-  test('resolves codex aliases with reasoning', () => {
-    expect(resolveModelAlias('sol')).toEqual({ backend: 'codex', model: 'gpt-5.6-sol', reasoning: 'max' });
+  test('resolves agy aliases', () => {
+    expect(resolveModelAlias('gemini-pro')).toEqual({ backend: 'agy', model: 'gemini-3.1-pro-high' });
+    expect(resolveModelAlias('gemini-flash')).toEqual({ backend: 'agy', model: 'gemini-3.6-flash-high' });
+    expect(resolveModelAlias('gemini-lite')).toEqual({ backend: 'agy', model: 'gemini-3.5-flash-low' });
   });
 
   test('handles case-insensitive lookup', () => {
     expect(resolveModelAlias('OPUS')).toEqual({ backend: 'claude-code', model: 'opus' });
     expect(resolveModelAlias('Sonnet')).toEqual({ backend: 'claude-code', model: 'sonnet' });
-    expect(resolveModelAlias('GPT')).toEqual({ backend: 'codex', model: 'gpt-5.3-codex' });
-    expect(resolveModelAlias('GLM')).toEqual({ backend: 'pi', model: 'pi/makora/zai-org/GLM-5.2-NVFP4', reasoning: 'xhigh' });
-    expect(resolveModelAlias('SOL')).toEqual({ backend: 'codex', model: 'gpt-5.6-sol', reasoning: 'max' });
+    expect(resolveModelAlias('SOL')).toEqual({ backend: 'codex', model: 'gpt-5.6-sol', reasoning: 'high' });
+    expect(resolveModelAlias('Gemini-Pro')).toEqual({ backend: 'agy', model: 'gemini-3.1-pro-high' });
   });
 
   test('handles whitespace', () => {
@@ -98,10 +100,10 @@ describe('isModelAlias', () => {
     expect(isModelAlias('opus')).toBe(true);
     expect(isModelAlias('sonnet')).toBe(true);
     expect(isModelAlias('haiku')).toBe(true);
-    expect(isModelAlias('gpt')).toBe(true);
     expect(isModelAlias('fable')).toBe(true);
-    expect(isModelAlias('glm')).toBe(true);
     expect(isModelAlias('sol')).toBe(true);
+    expect(isModelAlias('terra')).toBe(true);
+    expect(isModelAlias('gemini-pro')).toBe(true);
   });
 
   test('returns false for unknown models', () => {
@@ -112,8 +114,8 @@ describe('isModelAlias', () => {
   test('is case-insensitive', () => {
     expect(isModelAlias('OPUS')).toBe(true);
     expect(isModelAlias('Sonnet')).toBe(true);
-    expect(isModelAlias('GLM')).toBe(true);
     expect(isModelAlias('SOL')).toBe(true);
+    expect(isModelAlias('GEMINI-FLASH')).toBe(true);
   });
 });
 
@@ -123,13 +125,19 @@ describe('listModelAliases', () => {
     expect(aliases).toContain('opus');
     expect(aliases).toContain('sonnet');
     expect(aliases).toContain('haiku');
-    expect(aliases).toContain('gpt');
     expect(aliases).toContain('fable');
-    expect(aliases).toContain('glm');
-    expect(aliases).toContain('k3');
     expect(aliases).toContain('sol');
-    expect(aliases).toContain('gemini');
-    expect(aliases).toContain('agy-flash');
+    expect(aliases).toContain('terra');
+    expect(aliases).toContain('luna');
+    expect(aliases).toContain('gemini-pro');
+    expect(aliases).toContain('gemini-flash');
+    expect(aliases).toContain('gemini-lite');
+    // Removed / user-set names are absent.
+    expect(aliases).not.toContain('gpt');
+    expect(aliases).not.toContain('glm');
+    expect(aliases).not.toContain('k3');
+    expect(aliases).not.toContain('gemini');
+    expect(aliases).not.toContain('agy-flash');
   });
 
   test('returns expected count', () => {

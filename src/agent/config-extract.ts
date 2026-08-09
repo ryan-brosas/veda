@@ -38,7 +38,7 @@ function inferBackendFromModel(modelName: string): string | undefined {
  * Format valid model options for error messages.
  */
 function formatValidModels(): string {
-  const aliasExamples = ['opus', 'sonnet', 'haiku', 'gpt', 'glm', 'sol'];
+  const aliasExamples = ['opus', 'sonnet', 'haiku', 'sol', 'terra', 'gemini-pro'];
   const prefixExamples = Object.entries(MODEL_PREFIX_TO_BACKEND)
     .map(([prefix, backend]) => `${prefix}* (${backend})`)
     .join(', ');

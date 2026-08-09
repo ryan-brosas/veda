@@ -524,15 +524,15 @@ describe('agy registration and routing', () => {
     expect(getBackendDefaultReasoning('agy')).toBe('medium');
   });
 
-  test('agy-flash alias resolves to agy with a bare slug', async () => {
+  test('gemini-flash alias resolves to agy with a bare slug', async () => {
     const { resolveModelAlias } = await import('../../src/agent/model-aliases');
-    const target = resolveModelAlias('agy-flash');
-    expect(target).toEqual({ backend: 'agy', model: 'gemini-3.6-flash-medium' });
+    const target = resolveModelAlias('gemini-flash');
+    expect(target).toEqual({ backend: 'agy', model: 'gemini-3.6-flash-high' });
   });
 
-  test('gemini alias resolves to agy pro default', async () => {
+  test('gemini-pro alias resolves to agy pro default', async () => {
     const { resolveModelAlias } = await import('../../src/agent/model-aliases');
-    const target = resolveModelAlias('gemini');
+    const target = resolveModelAlias('gemini-pro');
     expect(target).toEqual({ backend: 'agy', model: 'gemini-3.1-pro-high' });
   });
 
@@ -546,14 +546,14 @@ describe('agy registration and routing', () => {
     expect(resolved.model).toBe('agy/gemini-3.6-flash-low');
   });
 
-  test('agy-flash alias alone selects the agy backend', async () => {
+  test('gemini-flash alias alone selects the agy backend', async () => {
     const { resolveBackendModel } = await import('../../src/agent/config');
     const resolved = resolveBackendModel({
-      explicitModel: 'agy-flash',
+      explicitModel: 'gemini-flash',
       fallbackBackend: 'codex',
     });
     expect(resolved.backend).toBe('agy');
-    expect(resolved.model).toBe('gemini-3.6-flash-medium');
+    expect(resolved.model).toBe('gemini-3.6-flash-high');
   });
 
   test('user-defined agy/ alias infers the agy backend', async () => {
@@ -566,14 +566,14 @@ describe('agy registration and routing', () => {
     });
   });
 
-  test('deep-stage resolution routes an agy-flash solver slot to agy', async () => {
+  test('deep-stage resolution routes a gemini-flash solver slot to agy', async () => {
     const { resolveBackendModelForStage } = await import('../../src/agent/config');
     const resolved = resolveBackendModelForStage('solver', {
-      explicitModel: 'agy-flash',
+      explicitModel: 'gemini-flash',
       fallbackBackend: 'codex',
     });
     expect(resolved.backend).toBe('agy');
-    expect(resolved.model).toBe('gemini-3.6-flash-medium');
+    expect(resolved.model).toBe('gemini-3.6-flash-high');
   });
 
   test('deep-stage judge default for agy backend uses the agy default model', async () => {

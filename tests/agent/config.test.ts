@@ -339,7 +339,7 @@ describe('resolveModel', () => {
   test('global alias MODEL targeting the same backend resolves to its target', () => {
     expect(resolveModel({
       backend: 'agy',
-      globalConfig: { model: 'gemini' },
+      globalConfig: { model: 'gemini-pro' },
     })).toBe('gemini-3.1-pro-high');
   });
 });
@@ -365,23 +365,23 @@ describe('resolveBackendModel', () => {
       expect(result.source).toEqual({ kind: 'alias', aliasName: 'sonnet' });
     });
 
-    test('resolves gpt alias to codex backend', () => {
+    test('resolves terra alias to codex backend', () => {
       const result = resolveBackendModel({
-        explicitModel: 'gpt',
+        explicitModel: 'terra',
       });
       expect(result.backend).toBe('codex');
-      expect(result.model).toBe('gpt-5.3-codex');
-      expect(result.source).toEqual({ kind: 'alias', aliasName: 'gpt' });
+      expect(result.model).toBe('gpt-5.6-terra');
+      expect(result.source).toEqual({ kind: 'alias', aliasName: 'terra' });
+      expect(result.aliasReasoning).toBe('high');
     });
 
-    test('resolves glm alias to pi backend with reasoning', () => {
+    test('resolves gemini-pro alias to agy backend', () => {
       const result = resolveBackendModel({
-        explicitModel: 'glm',
+        explicitModel: 'gemini-pro',
       });
-      expect(result.backend).toBe('pi');
-      expect(result.model).toBe('pi/makora/zai-org/GLM-5.2-NVFP4');
-      expect(result.source).toEqual({ kind: 'alias', aliasName: 'glm' });
-      expect(result.aliasReasoning).toBe('xhigh');
+      expect(result.backend).toBe('agy');
+      expect(result.model).toBe('gemini-3.1-pro-high');
+      expect(result.source).toEqual({ kind: 'alias', aliasName: 'gemini-pro' });
     });
 
     test('resolves sol alias to codex backend with reasoning', () => {
@@ -391,7 +391,7 @@ describe('resolveBackendModel', () => {
       expect(result.backend).toBe('codex');
       expect(result.model).toBe('gpt-5.6-sol');
       expect(result.source).toEqual({ kind: 'alias', aliasName: 'sol' });
-      expect(result.aliasReasoning).toBe('max');
+      expect(result.aliasReasoning).toBe('high');
     });
   });
 
@@ -567,11 +567,11 @@ describe('resolveBackendModel', () => {
   describe('edge cases', () => {
     test('handles alias with leading/trailing whitespace', () => {
       const result = resolveBackendModel({
-        explicitModel: '  glm  ',
+        explicitModel: '  terra  ',
       });
-      expect(result.backend).toBe('pi');
-      expect(result.model).toBe('pi/makora/zai-org/GLM-5.2-NVFP4');
-      expect(result.source).toEqual({ kind: 'alias', aliasName: 'glm' });
+      expect(result.backend).toBe('codex');
+      expect(result.model).toBe('gpt-5.6-terra');
+      expect(result.source).toEqual({ kind: 'alias', aliasName: 'terra' });
     });
 
     test('handles alias with internal whitespace in mixed case', () => {
@@ -610,27 +610,27 @@ describe('resolveBackendModel', () => {
   });
 
   describe('CRITICAL: mismatched backend and alias', () => {
-    test('explicit codex backend with glm alias treats as literal model', () => {
+    test('explicit codex backend with gemini-pro alias treats as literal model', () => {
       // This documents the current behavior: when backend is explicit and
       // differs from alias backend, the model is treated as literal
       const result = resolveBackendModel({
         explicitBackend: 'codex',
-        explicitModel: 'glm', // Alias for pi
+        explicitModel: 'gemini-pro', // Alias for agy
       });
 
       expect(result.backend).toBe('codex');
-      expect(result.model).toBe('glm'); // NOT resolved to pi model
+      expect(result.model).toBe('gemini-pro'); // NOT resolved to agy model
       expect(result.source).toEqual({ kind: 'explicit' });
     });
 
-    test('explicit claude-code backend with gpt alias treats as literal model', () => {
+    test('explicit claude-code backend with sol alias treats as literal model', () => {
       const result = resolveBackendModel({
         explicitBackend: 'claude-code',
-        explicitModel: 'gpt', // Alias for codex
+        explicitModel: 'sol', // Alias for codex
       });
 
       expect(result.backend).toBe('claude-code');
-      expect(result.model).toBe('gpt'); // NOT gpt-5.2
+      expect(result.model).toBe('sol'); // NOT gpt-5.6-sol
       expect(result.source).toEqual({ kind: 'explicit' });
     });
   });

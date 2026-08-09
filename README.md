@@ -134,7 +134,9 @@ veda -m sonnet "..."    # Uses claude-code with sonnet
 veda -m haiku "..."     # Uses claude-code with haiku
 
 # OpenAI models (→ codex backend)
-veda -m gpt "..."       # Uses codex with gpt-5.2
+veda -m sol "..."       # Uses codex with gpt-5.6-sol (high)
+veda -m terra "..."     # Uses codex with gpt-5.6-terra (high)
+veda -m luna "..."      # Uses codex with gpt-5.6-luna (high)
 
 
 # pi models (→ pi backend, auto-inferred from pi/ prefix)
@@ -143,8 +145,9 @@ veda -m pi/fireworks/accounts/fireworks/routers/kimi-k2p6 "..."  # fireworks pro
 veda -m pi/neuralwatt/moonshotai/Kimi-K2.6 "..."      # neuralwatt provider
 
 # Antigravity models (→ agy backend)
-veda -m gemini "..."              # Uses agy with gemini-3.1-pro-high
-veda -m agy-flash "..."           # Uses agy with gemini-3.6-flash-medium
+veda -m gemini-pro "..."          # Uses agy with gemini-3.1-pro-high
+veda -m gemini-flash "..."        # Uses agy with gemini-3.6-flash-high
+veda -m gemini-lite "..."         # Uses agy with gemini-3.5-flash-low
 veda -m agy/gemini-3.6-flash-low "..."  # agy/ prefix auto-infers the agy backend
 veda -b agy -m claude-sonnet-4-6 "..."  # agy-hosted Claude (needs explicit -b; bare claude-* goes to claude-code)
 ```
