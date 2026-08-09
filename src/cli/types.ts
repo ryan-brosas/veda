@@ -16,6 +16,7 @@ export type VedaInput =
   | { command: 'sel'; subcommand: SelSubcommand; args: string[]; session: string }
   | { command: 'skills'; subcommand: SkillsSubcommand }
   | { command: 'stats'; config: StatsConfig }
+  | { command: 'models'; config: ModelsConfig }
   | { command: 'init' }
   | { command: 'guide' }
   | { command: 'personas'; subcommand?: string }
@@ -25,6 +26,17 @@ export type VedaInput =
 
 export type SelSubcommand = 'add' | 'rm' | 'ls' | 'clear' | 'tokens';
 export type SkillsSubcommand = 'install' | 'uninstall' | 'list';
+
+// =============================================================================
+// Models Config
+// =============================================================================
+
+export interface ModelsConfig {
+  /** Canonical backend id to scope to; undefined = all installed backends. */
+  backend?: string;
+  json: boolean;
+  refresh: boolean;
+}
 
 // =============================================================================
 // Simple Mode Config
@@ -276,6 +288,9 @@ export interface RawFlags {
   limit?: number;
   era?: string;  // Era selector: 'current' | 'legacy' | 'all' | era ID
 
+  // Models command
+  refresh: boolean;
+
   // Meta
   help: boolean;
   version: boolean;
@@ -303,6 +318,7 @@ export type CommandType =
   | { type: 'prompt'; mode: 'deep' }
   | { type: 'resume' }
   | { type: 'sel'; subcommand: SelSubcommand }
+  | { type: 'models' }
   | { type: 'init' }
   | { type: 'personas' }
   | { type: 'help' }

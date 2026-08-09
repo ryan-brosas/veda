@@ -166,6 +166,19 @@ veda -m flash "..."        # → pi backend, pi/neuralwatt/deepseek-v4-flash
 
 **Note:** The `--reasoning` flag (`-r`) is fully supported by the Codex backend, automatically configured for the Claude backend (mapped to `MAX_THINKING_TOKENS`), and supported by the Gemini backend (via scoped settings.json override with automatic cleanup).
 
+### Discover Models
+
+`veda models` answers "what can I type after `-m`?" for each installed backend — the effective default (with its source), the aliases that route to it, and a capped catalog. Default output is fully offline (local files only); pi and droid collapse variant lineage into family heads so 45-row configs stay readable.
+
+```bash
+veda models              # all installed backends: default + aliases + capped catalog
+veda models pi           # one backend, uncapped: full discoverable inventory
+veda models --json       # machine-readable (warnings inside the JSON)
+veda models --refresh    # live-probe codex + agy for this run; falls back soft
+```
+
+Claude and droid have no live listing command, so their built-ins are curated and labeled as such. `--refresh` only live-queries the two backends that support it (`codex debug models`, `agy models`) and writes nothing.
+
 ### Resume Conversations
 
 ```bash

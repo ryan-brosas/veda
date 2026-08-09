@@ -276,13 +276,28 @@ export interface ResolveModelOptions {
   globalConfig?: GlobalConfig;
 }
 
-export function resolveModel(options: ResolveModelOptions): string | undefined {
+/** Where the effective model came from, for source-aware introspection. */
+export type EffectiveModelSource = 'explicit' | 'backend-config' | 'global-config' | 'built-in';
+
+export interface EffectiveModelResolution {
+  model?: string;
+  source: EffectiveModelSource;
+}
+
+/**
+ * Source-aware effective model resolution.
+ *
+ * Runs the exact same precedence as `resolveModel()` and reports which layer
+ * produced the value. `resolveModel()` is a projection of this result, so the
+ * two can never diverge. Used by `veda models` to label the default's origin.
+ */
+export function resolveModelWithSource(options: ResolveModelOptions): EffectiveModelResolution {
   const { backend, explicitModel, globalConfig } = options;
 
-  if (explicitModel) return explicitModel;
+  if (explicitModel) return { model: explicitModel, source: 'explicit' };
 
   const userOverride = globalConfig?.backendModels?.[backend];
-  if (userOverride) return userOverride;
+  if (userOverride) return { model: userOverride, source: 'backend-config' };
 
   if (globalConfig?.model) {
     const alias = tryResolveAliasTarget(globalConfig.model, globalConfig.modelAliases);
@@ -292,14 +307,18 @@ export function resolveModel(options: ResolveModelOptions): string | undefined {
       // otherwise it leaks a foreign model across an explicit -b switch.
       const inferred = inferBackendFromModelPrefix(globalConfig.model);
       if (!inferred || inferred === backend) {
-        return globalConfig.model;
+        return { model: globalConfig.model, source: 'global-config' };
       }
     } else if (alias.backend === backend) {
-      return alias.model;
+      return { model: alias.model, source: 'global-config' };
     }
   }
 
-  return getBackendDefaultModel(backend);
+  return { model: getBackendDefaultModel(backend), source: 'built-in' };
+}
+
+export function resolveModel(options: ResolveModelOptions): string | undefined {
+  return resolveModelWithSource(options).model;
 }
 
 export interface ResolveModelForStageOptions {

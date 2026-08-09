@@ -7,3 +7,4 @@ export { handleInit } from './init';
 export { handleDeep } from './deep';
 export { handleGuide } from './guide';
 export { handleStats, type StatsOptions } from './stats';
+export { handleModels, formatModelsText } from './models';

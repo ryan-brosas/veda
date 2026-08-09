@@ -58,6 +58,8 @@ const BOOLEAN_FLAGS = new Set([
   '--by-category',
   '--by-model',
   '--by-judge',
+  // Models command
+  '--refresh',
 ]);
 
 // All known flags for suggestion matching
@@ -151,6 +153,7 @@ export function tokenizeArgv(argv: string[]): { flags: RawFlags; positionals: st
     version: false,
     dryRun: false,
     noTools: false,
+    refresh: false,
   };
   
   const positionals: string[] = [];
@@ -390,6 +393,9 @@ function parseBooleanFlag(flags: RawFlags, flag: string): void {
     case '--by-judge':
       flags.statsJudge = true;
       break;
+    case '--refresh':
+      flags.refresh = true;
+      break;
   }
 }
 
@@ -448,6 +454,13 @@ export function classifyCommand(positionals: string[], flags: RawFlags): ParsedP
     
     case 'init':
       return { command: 'init', args: [] };
+
+    case 'models':
+      return {
+        command: 'models',
+        subcommand: positionals[1],  // optional backend id
+        args: positionals.slice(1),
+      };
     
     case 'guide':
       return { command: 'guide', args: [] };

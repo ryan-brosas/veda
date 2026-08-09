@@ -8,7 +8,7 @@
 import { parseAndValidate, CliValidationError } from './cli/index';
 import { simpleConfigToCliOptions, deepConfigToCliOptions, resumeConfigToCliOptions } from './cli/adapter';
 import { showHelp, showVersion } from './cli';
-import { handleSel, handleSkills, handlePersonas, handleRun, handleResume, handleInit, handleDeep, handleStats, handleGuide } from './commands';
+import { handleSel, handleSkills, handlePersonas, handleRun, handleResume, handleInit, handleDeep, handleStats, handleGuide, handleModels } from './commands';
 import { readStdin } from './util/stdin';
 
 async function main(): Promise<void> {
@@ -47,6 +47,10 @@ async function main(): Promise<void> {
 
       case 'stats':
         await handleStats(input.config);
+        return;
+
+      case 'models':
+        await handleModels(input.config);
         return;
 
       case 'dry-run':

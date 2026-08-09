@@ -92,6 +92,17 @@ export async function parseAndValidate(argv: string[]): Promise<VedaInput> {
   if (parsed.command === 'stats') {
     return constructStatsInput(flags);
   }
+  if (parsed.command === 'models') {
+    validateApplicability(parsed, flags, positionals);
+    return {
+      command: 'models',
+      config: {
+        backend: parsed.args[0],
+        json: flags.json,
+        refresh: flags.refresh,
+      },
+    };
+  }
   
   // Step 4: Validate applicability
   validateApplicability(parsed, flags, positionals);

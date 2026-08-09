@@ -403,3 +403,52 @@ describe('integration: parseAndValidate', () => {
       .rejects.toThrow(/targets claude-code, conflicts with -b codex/);
   });
 });
+
+describe('models command', () => {
+  test('classifies `models` as a models command, not a prompt', () => {
+    const parsed = classifyCommand(['models'], { session: 'default' } as any);
+    expect(parsed.command).toBe('models');
+  });
+
+  test('regression: `veda models` yields a models input, never a prompt input', async () => {
+    const result = await parseAndValidate(['node', 'veda', 'models']);
+    expect(result.command).toBe('models');
+    if (result.command === 'models') {
+      expect(result.config.backend).toBeUndefined();
+      expect(result.config.json).toBe(false);
+      expect(result.config.refresh).toBe(false);
+    }
+  });
+
+  test('scopes to a valid backend', async () => {
+    const result = await parseAndValidate(['node', 'veda', 'models', 'pi']);
+    expect(result.command).toBe('models');
+    if (result.command === 'models') {
+      expect(result.config.backend).toBe('pi');
+    }
+  });
+
+  test('accepts --json and --refresh', async () => {
+    const result = await parseAndValidate(['node', 'veda', 'models', 'agy', '--json', '--refresh']);
+    if (result.command === 'models') {
+      expect(result.config.backend).toBe('agy');
+      expect(result.config.json).toBe(true);
+      expect(result.config.refresh).toBe(true);
+    }
+  });
+
+  test('rejects an unknown backend', async () => {
+    await expect(parseAndValidate(['node', 'veda', 'models', 'bogus']))
+      .rejects.toThrow(/Unknown backend: bogus/);
+  });
+
+  test('rejects extra positionals', async () => {
+    await expect(parseAndValidate(['node', 'veda', 'models', 'pi', 'agy']))
+      .rejects.toThrow(/at most one backend/);
+  });
+
+  test('rejects a prompt-only flag like -m', async () => {
+    await expect(parseAndValidate(['node', 'veda', 'models', '-m', 'sol']))
+      .rejects.toThrow(/not applicable to "models"/);
+  });
+});

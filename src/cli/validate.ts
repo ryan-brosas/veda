@@ -85,8 +85,47 @@ export function validateApplicability(
   const isInit = parsed.command === 'init';
   const isPersonas = parsed.command === 'personas';
   const isSkills = parsed.command === 'skills';
+  const isModels = parsed.command === 'models';
   
-  // Check deep-only flags in non-deep modes
+  // --- models command validation ---
+  if (isModels) {
+    const CANONICAL_BACKENDS = ['codex', 'claude-code', 'droid', 'pi', 'agy'];
+
+    // Reject extra positionals (at most one backend after `models`).
+    if (parsed.args.length > 1) {
+      throw new CliValidationError(
+        'Too many arguments: `veda models` accepts at most one backend',
+        'AMBIGUOUS_PROMPT',
+        'Use: veda models [codex|claude-code|droid|pi|agy]'
+      );
+    }
+
+    // Validate the backend id when provided.
+    const backend = parsed.args[0];
+    if (backend !== undefined && !CANONICAL_BACKENDS.includes(backend)) {
+      throw new CliValidationError(
+        `Unknown backend: ${backend}`,
+        'UNKNOWN_COMMAND',
+        `Available: ${CANONICAL_BACKENDS.join(', ')}`
+      );
+    }
+
+    // Only --json and --refresh are meaningful for models.
+    const inapplicableToModels = [
+      'backend', 'model', 'persona', 'reasoning', 'sandbox',
+      'files', 'output', 'deep', 'k', 'noSel', ...DEEP_ONLY_FLAGS,
+    ];
+    for (const flag of inapplicableToModels) {
+      if (hasFlag(flags, flag)) {
+        const displayName = FLAG_DISPLAY_NAMES[flag] ?? `--${flag}`;
+        throw new CliValidationError(
+          `${displayName} is not applicable to "models" command`,
+          'FLAG_NOT_APPLICABLE'
+        );
+      }
+    }
+  }
+  
   if (!isDeepMode) {
     for (const flag of DEEP_ONLY_FLAGS) {
       if (hasFlag(flags, flag)) {

@@ -404,6 +404,7 @@ a driver-navigator workflow inspired by pair programming best practices.
   veda guide                       Print the full pair programming guide
   veda personas                    List personas (with descriptions)
   veda personas <name>             Show a persona's system prompt
+  veda models [backend]            List models per backend (default, aliases, catalog)
   veda sel <cmd> [args]            Manage file selection (add, rm, ls, clear, tokens)
   veda skills <cmd>             Install agent skills (install, uninstall, list)
   veda resume [prompt]             Resume a conversation
@@ -453,6 +454,20 @@ a driver-navigator workflow inspired by pair programming best practices.
   --verifier-backend/--model --revision-backend/--model
   --solver-reasoning         --judge-reasoning
   --verifier-reasoning       --revision-reasoning
+
+== Models ==
+
+  veda models                   All installed backends: effective default (with its
+                                source), aliases that route to it, and a capped catalog
+                                (≤5 rows). Offline; reads local files only.
+  veda models <backend>         One backend (codex, claude-code, droid, pi, agy),
+                                uncapped: the full discoverable inventory with variant
+                                lineage expanded.
+  veda models --json            Machine-readable result (warnings inside the JSON).
+  veda models --refresh         Live-probe codex (codex debug models) and agy
+                                (agy models) for this invocation; falls back to offline
+                                data on failure. Writes nothing. claude-code and droid
+                                have no live probe (curated / settings-derived).
 
 == Selection ==
 
