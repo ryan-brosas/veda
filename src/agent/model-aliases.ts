@@ -15,6 +15,7 @@ export const MODEL_ALIASES: Record<string, ModelAliasTarget> = {
   'sol': { backend: 'codex', model: 'gpt-5.6-sol', reasoning: 'high' },
   'terra': { backend: 'codex', model: 'gpt-5.6-terra', reasoning: 'high' },
   'luna': { backend: 'codex', model: 'gpt-5.6-luna', reasoning: 'high' },
+  'daybreak-blue': { backend: 'codex', model: 'gpt-daybreak-blue-latest', reasoning: 'high' },
 
   // Droid models (via droid exec)
   'fable': { backend: 'droid', model: 'claude-fable-5' },

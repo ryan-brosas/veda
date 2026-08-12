@@ -19,6 +19,8 @@ describe('MODEL_ALIASES', () => {
     expect(MODEL_ALIASES['sol']).toEqual({ backend: 'codex', model: 'gpt-5.6-sol', reasoning: 'high' });
     expect(MODEL_ALIASES['terra']).toEqual({ backend: 'codex', model: 'gpt-5.6-terra', reasoning: 'high' });
     expect(MODEL_ALIASES['luna']).toEqual({ backend: 'codex', model: 'gpt-5.6-luna', reasoning: 'high' });
+    // codex CLI slug is gpt-daybreak-blue-latest, never the API-doc ID daybreak-blue-latest.
+    expect(MODEL_ALIASES['daybreak-blue']).toEqual({ backend: 'codex', model: 'gpt-daybreak-blue-latest', reasoning: 'high' });
   });
 
   test('contains Droid models', () => {
@@ -65,6 +67,7 @@ describe('resolveModelAlias', () => {
     expect(resolveModelAlias('sol')).toEqual({ backend: 'codex', model: 'gpt-5.6-sol', reasoning: 'high' });
     expect(resolveModelAlias('terra')).toEqual({ backend: 'codex', model: 'gpt-5.6-terra', reasoning: 'high' });
     expect(resolveModelAlias('luna')).toEqual({ backend: 'codex', model: 'gpt-5.6-luna', reasoning: 'high' });
+    expect(resolveModelAlias('daybreak-blue')).toEqual({ backend: 'codex', model: 'gpt-daybreak-blue-latest', reasoning: 'high' });
   });
 
   test('resolves Droid aliases', () => {
@@ -104,6 +107,7 @@ describe('isModelAlias', () => {
     expect(isModelAlias('sol')).toBe(true);
     expect(isModelAlias('terra')).toBe(true);
     expect(isModelAlias('gemini-pro')).toBe(true);
+    expect(isModelAlias('daybreak-blue')).toBe(true);
   });
 
   test('returns false for unknown models', () => {
@@ -116,6 +120,7 @@ describe('isModelAlias', () => {
     expect(isModelAlias('Sonnet')).toBe(true);
     expect(isModelAlias('SOL')).toBe(true);
     expect(isModelAlias('GEMINI-FLASH')).toBe(true);
+    expect(isModelAlias('DAYBREAK-BLUE')).toBe(true);
   });
 });
 
@@ -129,6 +134,7 @@ describe('listModelAliases', () => {
     expect(aliases).toContain('sol');
     expect(aliases).toContain('terra');
     expect(aliases).toContain('luna');
+    expect(aliases).toContain('daybreak-blue');
     expect(aliases).toContain('gemini-pro');
     expect(aliases).toContain('gemini-flash');
     // Removed / user-set names are absent.
@@ -138,11 +144,12 @@ describe('listModelAliases', () => {
     expect(aliases).not.toContain('gemini');
     expect(aliases).not.toContain('agy-flash');
     expect(aliases).not.toContain('gemini-lite');
+    expect(aliases).not.toContain('daybreak-blue-latest'); // never the raw model ID
   });
 
   test('returns expected count', () => {
-    // opus sonnet haiku sol terra luna fable gemini-pro gemini-flash = 9
-    expect(listModelAliases().length).toBe(9);
+    // opus sonnet haiku sol terra luna daybreak-blue fable gemini-pro gemini-flash = 10
+    expect(listModelAliases().length).toBe(10);
   });
 });
 
