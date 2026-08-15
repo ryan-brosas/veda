@@ -81,15 +81,13 @@ describe('toPiTools', () => {
     expect(result).toContain('grep');
   });
 
-  test('full includes edit,write plus bash', () => {
+  test('full sandbox with the full-toolset policy omits the allowlist (pi default full toolset)', () => {
     const result = toPiTools('full');
-    expect(result).toContain('edit');
-    expect(result).toContain('write');
-    expect(result).toContain('bash'); // pi always has bash per user preference
-    expect(result).not.toContain('apply_patch'); // GPT-specific, not for pi
-    expect(result).not.toContain('exec_command'); // GPT-specific, not for pi
-    // Should include base tools
-    expect(result).toContain('read');
+    expect(result).toBeUndefined();
+  });
+
+  test('full sandbox passes an explicit allowlist through unfiltered', () => {
+    expect(toPiTools('full', ['read', 'bash', 'cdp', 'xtui'])).toBe('read,bash,cdp,xtui');
   });
 
   test('uses a persona tool allowlist when provided', () => {

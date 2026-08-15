@@ -33,7 +33,17 @@ export function toPiThinking(reasoning: ReasoningLevel): string {
   }
 }
 
-export function toPiTools(sandbox: SandboxMode, requestedTools?: string[]): string {
+/**
+ * Map (sandbox, requested tools) to pi's --tools allowlist.
+ *
+ * Returns `undefined` when the caller should omit the flag entirely — that is
+ * pi's own default (complete) toolset, the only faithful "full access" grant
+ * pi supports without naming every tool. Return values:
+ *   ''         → --no-tools
+ *   undefined  → omit --tools (pi default full toolset)
+ *   'a,b,c'    → --tools a,b,c
+ */
+export function toPiTools(sandbox: SandboxMode, requestedTools?: string[]): string | undefined {
   // Base tools always include bash for pi (user preference)
   // Note: apply_patch and exec_command are GPT-specific, not included for pi models
   const baseTools = ['read', 'bash', 'grep', 'glob', 'list_threads', 'read_thread', 'todo_write', 'compact'];
@@ -43,10 +53,13 @@ export function toPiTools(sandbox: SandboxMode, requestedTools?: string[]): stri
 
   if (requestedTools !== undefined) {
     if (requestedTools.length === 0) {
-      // Explicitly no tools — return empty string so pi receives --tools ""
-      // (requires the resolveToolSelection patch to honor [] instead of falling
-      // back to defaults)
+      // Explicitly no tools — return empty string so pi receives --no-tools.
       return '';
+    }
+    if (sandbox === 'full') {
+      // A full sandbox has no capability bound: pass the allowlist through
+      // unfiltered.
+      return requestedTools.join(',');
     }
     const allowed = new Set(sandboxTools);
     const filtered = requestedTools.filter(tool => allowed.has(tool));
@@ -61,7 +74,9 @@ export function toPiTools(sandbox: SandboxMode, requestedTools?: string[]): stri
     case 'workspace-write':
       return sandboxTools.join(',');
     case 'full':
-      return sandboxTools.join(',');
+      // Full sandbox + full-toolset policy (the worker): omit --tools so pi
+      // grants its own default (complete) toolset.
+      return undefined;
   }
 }
 
@@ -84,12 +99,14 @@ export class PiBackend implements Backend {
       '--thinking', toPiThinking(config.reasoning),
     ];
 
-    // Use --no-tools when an empty tool list is requested (requires pi patch).
-    // Falls back to --tools with the computed list otherwise.
-    if (config.tools !== undefined && config.tools.length === 0) {
+    // Tool policy: '' → --no-tools; a list → --tools <allowlist>;
+    // undefined (the worker's `tools: all` under a full sandbox) → omit the
+    // flag entirely so pi grants its own default (complete) toolset.
+    const toolsArg = toPiTools(config.sandbox, config.tools);
+    if (toolsArg === '') {
       args.push('--no-tools');
-    } else {
-      args.push('--tools', toPiTools(config.sandbox, config.tools));
+    } else if (toolsArg !== undefined) {
+      args.push('--tools', toolsArg);
     }
 
     if (config.systemPrompt) {
