@@ -41,7 +41,7 @@ describe('persona', () => {
     await mkdir(join(TEST_PERSONAS_DIR, 'worker'));
     await writeFile(
       join(TEST_PERSONAS_DIR, 'worker', 'AGENTS.md'),
-      '---\ntools: all\nsandbox: workspace-write\n---\n# Worker\n\nYou implement tasks.'
+      '---\ntools: all\nsandbox: full\n---\n# Worker\n\nYou implement tasks.'
     );
 
     // Create empty directory (should not be listed)
@@ -449,27 +449,27 @@ No frontmatter here.`
   });
 });
 
-describe('worker persona — write-capable defaults', () => {
+describe('worker persona — full-access defaults', () => {
   test('loadPersona(worker) yields frontmatter metadata', async () => {
     const persona = await loadPersona('worker', TEST_BASE);
     expect(persona.tools).toBe('all');
-    expect(persona.defaultSandbox).toBe('workspace-write');
+    expect(persona.defaultSandbox).toBe('full');
     expect(persona.metadata).toEqual({
       tools: 'all',
-      sandbox: 'workspace-write',
+      sandbox: 'full',
     });
   });
 
-  test('resolveAgentConfig(worker) resolves tools to the full toolset and write sandbox', async () => {
+  test('resolveAgentConfig(worker) resolves tools to the full toolset and full sandbox', async () => {
     const config = await resolveAgentConfig(
       { persona: 'worker', backend: 'codex', baseDir: TEST_BASE },
       { persona: 'navigator-chat' }
     );
     // undefined tools = backend's full toolset (not the no-tools default)
     expect(config.tools).toBeUndefined();
-    expect(config.sandbox).toBe('workspace-write');
-    // The write sandbox notice is prepended so the model sees its capability.
-    expect(config.systemPrompt).toContain('workspace-write access');
+    expect(config.sandbox).toBe('full');
+    // The full sandbox notice is prepended so the model sees its capability.
+    expect(config.systemPrompt).toContain('full access');
     expect(config.systemPrompt).not.toContain('no access to tools');
   });
 
@@ -495,9 +495,9 @@ describe('worker persona — write-capable defaults', () => {
     const config = await resolveAgentConfig(
       { persona: 'worker', backend: 'codex', baseDir: TEST_BASE },
       { persona: 'navigator-chat' },
-      { defaultSandbox: 'full' }
+      { defaultSandbox: 'workspace-write' }
     );
-    expect(config.sandbox).toBe('workspace-write');
+    expect(config.sandbox).toBe('full');
   });
 
   test('sandbox precedence: global defaultSandbox fills in when persona has none', async () => {
@@ -520,7 +520,7 @@ describe('worker persona — write-capable defaults', () => {
   test('embedded worker persona is available without a config-dir copy', async () => {
     const persona = await loadPersona('worker', '/nonexistent/path');
     expect(persona.tools).toBe('all');
-    expect(persona.defaultSandbox).toBe('workspace-write');
+    expect(persona.defaultSandbox).toBe('full');
   });
 });
 

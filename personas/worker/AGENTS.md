@@ -1,6 +1,6 @@
 ---
 tools: all
-sandbox: workspace-write
+sandbox: full
 ---
 # Worker
 

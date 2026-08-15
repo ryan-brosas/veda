@@ -65,6 +65,21 @@ Make changes through the narrowest effect channel, verify them against real stat
 
 `;
 
+export const SANDBOX_NOTICE_FULL = `## Sandbox Notice
+
+You are an AI assistant with **full access** to the local machine and network. You may:
+- Read, create, edit, and delete files anywhere
+- Run any shell command, install packages, and start services when verification needs them
+- Make network requests and drive external surfaces (browser, APIs)
+
+Your permissions are **full** — no sandbox restricts you. Make changes through
+the narrowest effect channel, verify them against real state, and report back
+through the worker_report protocol.
+
+---
+
+`;
+
 export function withSandboxNotice(systemPrompt: string): string {
   if (systemPrompt.includes('## Sandbox Notice')) return systemPrompt;
   return SANDBOX_NOTICE + systemPrompt;
@@ -85,13 +100,19 @@ export function withWriteSandboxNotice(systemPrompt: string): string {
   return SANDBOX_NOTICE_WRITE + systemPrompt;
 }
 
+export function withFullSandboxNotice(systemPrompt: string): string {
+  if (systemPrompt.includes('## Sandbox Notice')) return systemPrompt;
+  return SANDBOX_NOTICE_FULL + systemPrompt;
+}
+
 /**
  * Select the sandbox notice that matches an effective (tools, sandbox) pair.
  *
  * The notice must match runtime reality: an empty tool allowlist means no
  * tools exist (the no-access notice); an *undefined* allowlist means the
  * backend's full toolset is granted (undefined vs [] — see resolveAgentConfig);
- * and a workspace-write sandbox with tools granted gets the write notice.
+ * a workspace-write sandbox with tools granted gets the write notice; a full
+ * sandbox with the full toolset gets the full notice.
  */
 export function withSandboxModeNotice(
   systemPrompt: string,
@@ -99,6 +120,7 @@ export function withSandboxModeNotice(
 ): string {
   if (opts.tools === undefined) {
     // Full toolset granted (backend default) — e.g. the worker persona.
+    if (opts.sandbox === 'full') return withFullSandboxNotice(systemPrompt);
     return opts.sandbox === 'workspace-write'
       ? withWriteSandboxNotice(systemPrompt)
       : systemPrompt;

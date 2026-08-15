@@ -41,7 +41,7 @@ export async function readPersonaForInit(name: string): Promise<string | undefin
 export interface PersonaMetadata {
   /** Tool allowlist. An empty array means no tools; 'all' grants the backend's full toolset. */
   tools?: string[] | 'all';
-  /** Sandbox mode requested by the persona (worker defaults to workspace-write). */
+  /** Sandbox mode requested by the persona (worker defaults to full). */
   sandbox?: SandboxMode;
   // Future: category?, etc.
 }

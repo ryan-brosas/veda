@@ -42,7 +42,7 @@ veda -S impl-auth-feature -p navigator-plan 'The function uses \`console.log\` t
 
 ### Tools
 
-Tools are **off by default** for the advisory personas (navigator-plan, navigator-chat, reviewer) — they reason from the supplied context only. Opt in explicitly with \`--tools\` for a single run (e.g., \`--tools read,bash,grep,glob\` when the reviewer should verify against the live surface). The **worker** is the exception: it runs with tools on and a \`workspace-write\` sandbox, because implementation is its job.
+Tools are **off by default** for the advisory personas (navigator-plan, navigator-chat, reviewer) — they reason from the supplied context only. Opt in explicitly with \`--tools\` for a single run (e.g., \`--tools read,bash,grep,glob\` when the reviewer should verify against the live surface). The **worker** is the exception: it runs with tools on and a \`full\` sandbox, because implementation is its job.
 
 \`\`\`bash
 # Default: no tools, context-only reasoning
@@ -51,7 +51,7 @@ veda -S impl-auth-feature -m sol -p navigator-chat 'What about edge case X?'
 # Opt back in for a single run
 veda -S impl-auth-feature -m sol --tools read,grep,glob -p navigator-chat 'What about edge case X?'
 
-# Delegate an implementation task to the worker (tools on, workspace-write)
+# Delegate an implementation task to the worker (tools on, full sandbox)
 veda -S impl-auth-feature -m sol -p worker 'Implement the cache slice per design.json; run the slice tests.'
 \`\`\`
 
@@ -69,7 +69,7 @@ design to one worker run, verify the result), the *worker* drives
 | \`navigator-plan\` | high | none (default) |
 | \`navigator-chat\` | medium | none (default) |
 | \`reviewer\` | medium | none (default; opt in with --tools read,bash,grep,glob) |
-| \`worker\` | high | all (workspace-write sandbox) |
+| \`worker\` | high | all (full sandbox) |
 
 ---
 

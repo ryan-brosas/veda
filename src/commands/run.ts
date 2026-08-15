@@ -86,8 +86,8 @@ ${
   const showProgress = !options.json;
   
   // Always emit header at start. The worker is the first write-capable
-  // persona, so its header must display the sandbox mode (workspace-write)
-  // before the run starts — the blast-radius change is visible up front.
+  // persona, so its header must display the sandbox mode (full) before the
+  // run starts — the blast-radius change is visible up front.
   if (showProgress) {
     console.error(formatChatHeader(
       options.persona,

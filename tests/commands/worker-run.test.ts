@@ -108,8 +108,8 @@ describe('worker run protocol', () => {
     expect(stdout[0]).toContain('</worker_report>');
     expect(stdout[0]).not.toContain('<canned>');
 
-    // Header + completion show the workspace-write sandbox mode.
-    expect(stderr.some(l => l.includes('workspace-write'))).toBe(true);
+    // Header + completion show the full sandbox mode.
+    expect(stderr.some(l => l.includes('full'))).toBe(true);
     expect(stderr.some(l => l.includes('[report]'))).toBe(true);
 
     // report.yaml persisted with Factory field names at the top level.

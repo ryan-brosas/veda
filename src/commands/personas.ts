@@ -47,7 +47,7 @@ function personaDescription(name: string): string {
     case 'reviewer':
       return 'Code review — P0/P1/P2 findings against the diff + context';
     case 'worker':
-      return 'Write-capable implementation worker (workspace-write)';
+      return 'Write-capable implementation worker (full sandbox)';
     default:
       return '';
   }

@@ -279,11 +279,11 @@ veda personas                      # List available
 #### The Worker persona (write-capable)
 
 The **worker** is veda's first write-capable seat. It inverts the advisory
-personas' defaults — `tools: all` and `sandbox: workspace-write` — and is meant
+personas' defaults — `tools: all` and `sandbox: full` — and is meant
 for bounded implementation tasks a Driver can fully specify.
 
 ```bash
-# Delegate an implementation task; tools on, workspace-write sandbox
+# Delegate an implementation task; tools on, full sandbox
 veda -S feat-42 -p worker "Implement slice 1 of design.json; run the slice tests"
 
 # -m semantics are identical to every other persona
@@ -308,7 +308,7 @@ esac
 Because the worker edits your repo by default, its run header shows the
 sandbox mode up front, and `--sandbox read-only` is always available to run it
 as a dry-run planner (a report with no edits). The worker stays in scope:
-tools on, workspace-write — both overridable via `--tools`/`--no-tools` and
+tools on, full sandbox — both overridable via `--tools`/`--no-tools` and
 `--sandbox`.
 
 This orchestration workflow is bundled as the **`veda-worker`** agent skill
